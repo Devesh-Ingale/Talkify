@@ -1,5 +1,5 @@
 
-package dev.devlopment.Chater.Screens
+package dev.devlopment.chater.Screens
 
 import android.annotation.SuppressLint
 import androidx.activity.ComponentActivity
@@ -61,8 +61,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
-import dev.devlopment.Chater.Repository.Result
-import dev.devlopment.Chater.ViewModels.AuthViewModel
+import dev.devlopment.chater.Repository.Result
+import dev.devlopment.chater.ViewModels.AuthViewModel
 import dev.devlopment.chater.R
 import dev.devlopment.chater.ui.theme.Black
 import dev.devlopment.chater.ui.theme.BlueGray

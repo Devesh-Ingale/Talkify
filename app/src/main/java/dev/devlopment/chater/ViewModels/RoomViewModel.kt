@@ -1,12 +1,12 @@
-package dev.devlopment.Chater.ViewModels
+package dev.devlopment.chater.ViewModels
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.devlopment.Chater.MainAndUtils.Injection
-import dev.devlopment.Chater.Repository.Result
-import dev.devlopment.Chater.Repository.Room
+import dev.devlopment.chater.MainAndUtils.Injection
+import dev.devlopment.chater.Repository.Result
+import dev.devlopment.chater.Repository.Room
 import dev.devlopment.Chater.Repository.RoomRepository
 import kotlinx.coroutines.launch
 

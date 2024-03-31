@@ -1,4 +1,4 @@
-package dev.devlopment.Chater.Repository
+package dev.devlopment.chater.Repository
 
 sealed class Result<out T> {
     data class Success<out T>(val data: T) : Result<T>()

@@ -1,4 +1,4 @@
-package dev.devlopment.Chater.MainAndUtils
+package dev.devlopment.chater.MainAndUtils
 
 import com.google.firebase.firestore.FirebaseFirestore
 

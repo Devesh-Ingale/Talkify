@@ -12,8 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import dev.devlopment.chater.ui.theme.ChaterTheme
-import dev.devlopment.Chater.Navigations.NavigationGraph
-import dev.devlopment.Chater.ViewModels.AuthViewModel
+import dev.devlopment.chater.Navigations.NavigationGraph
+import dev.devlopment.chater.ViewModels.AuthViewModel
 
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)

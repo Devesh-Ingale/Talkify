@@ -1,4 +1,4 @@
-package dev.devlopment.Chater.Navigations
+package dev.devlopment.chater.Navigations
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -6,11 +6,11 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import dev.devlopment.Chater.Screens.ChatRoomListScreen
-import dev.devlopment.Chater.Screens.ChatScreen
-import dev.devlopment.Chater.Screens.LoginScreen
-import dev.devlopment.Chater.Screens.SignUpScreen
-import dev.devlopment.Chater.ViewModels.AuthViewModel
+import dev.devlopment.chater.Screens.ChatRoomListScreen
+import dev.devlopment.chater.Screens.ChatScreen
+import dev.devlopment.chater.Screens.LoginScreen
+import dev.devlopment.chater.Screens.SignUpScreen
+import dev.devlopment.chater.ViewModels.AuthViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable

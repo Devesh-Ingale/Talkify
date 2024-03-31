@@ -1,4 +1,4 @@
-package dev.devlopment.Chater.Repository
+package dev.devlopment.chater.Repository
 
 
 data class User(

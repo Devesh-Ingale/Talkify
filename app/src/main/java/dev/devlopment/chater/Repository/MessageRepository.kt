@@ -1,4 +1,4 @@
-package dev.devlopment.Chater.Repository
+package dev.devlopment.chater.Repository
 
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose

@@ -1,4 +1,4 @@
-package dev.devlopment.Chater.Screens
+package dev.devlopment.chater.Screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -44,7 +44,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.devlopment.Chater.ViewModels.AuthViewModel
+import dev.devlopment.chater.ViewModels.AuthViewModel
 import dev.devlopment.chater.R
 import dev.devlopment.chater.ui.theme.Black
 import dev.devlopment.chater.ui.theme.BlueGray

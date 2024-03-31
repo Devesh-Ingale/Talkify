@@ -1,4 +1,4 @@
-package dev.devlopment.Chater.Screens
+package dev.devlopment.chater.Screens
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -33,8 +33,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import dev.devlopment.Chater.Repository.Message
-import dev.devlopment.Chater.ViewModels.MessageViewModel
+import dev.devlopment.chater.Repository.Message
+import dev.devlopment.chater.ViewModels.MessageViewModel
 import dev.devlopment.chater.R
 import java.time.Instant
 import java.time.LocalDateTime
