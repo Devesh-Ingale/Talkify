@@ -1,13 +1,17 @@
 package dev.devlopment.chater.Screens
 
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,9 +23,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Divider
+import androidx.compose.material3.DividerDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -32,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -42,6 +53,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.devlopment.chater.Repository.Room
 import dev.devlopment.chater.ViewModels.RoomViewModel
 import dev.devlopment.chater.R
+import dev.devlopment.chater.ui.theme.focusedTextFieldText
+import dev.devlopment.chater.ui.theme.textFieldContainer
+import dev.devlopment.chater.ui.theme.unfocusedTextFieldText
 
 
 @Composable
@@ -52,17 +66,67 @@ fun ChatRoomListScreen(
     val rooms by roomViewModel.rooms.observeAsState(emptyList())
     var showDialog by remember { mutableStateOf(false) }
     var name by remember { mutableStateOf("") }
+
+    var searchText by remember { mutableStateOf("") } // State for search text
+
+    // Filtered rooms based on search text
+    val filteredRooms = rooms.filter {
+        it.name.contains(searchText, ignoreCase = true)
+    }
+    val background:Color=if (isSystemInDarkTheme()){
+        Color(0xFF1E293B)
+    }else{
+        Color(0xFFBFDBFE)
+    }
+    val uiColor: Color = if (isSystemInDarkTheme()) Color.White else Color.Black
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
     ) {
-        Text("Chat Rooms", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+
+        Text("Chat Rooms", style = MaterialTheme.typography.headlineLarge,
+            modifier = Modifier
+                .background(background, shape = RoundedCornerShape(5.dp))
+                .fillMaxWidth()
+                .padding(all = 15.dp),
+            color = uiColor)
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TextField(modifier = Modifier
+            .fillMaxWidth().padding(8.dp)
+            .border(BorderStroke(0.5.dp, color = uiColor), shape = RoundedCornerShape(20.dp)),
+            value = searchText,
+            onValueChange = { searchText = it },
+            label = {
+                Text(
+                    text = "Search Rooms",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = uiColor
+                )
+            },
+            colors = TextFieldDefaults.colors(
+                unfocusedPlaceholderColor = MaterialTheme.colorScheme.unfocusedTextFieldText,
+                focusedPlaceholderColor = MaterialTheme.colorScheme.focusedTextFieldText,
+                unfocusedContainerColor = MaterialTheme.colorScheme.textFieldContainer,
+                focusedContainerColor = MaterialTheme.colorScheme.textFieldContainer
+            ), trailingIcon = {if (isSystemInDarkTheme())
+            {
+                Icon(painter = painterResource(id = R.drawable.baseline_search_24_dark), contentDescription ="search" )
+            }
+            else {
+                Icon(painter = painterResource(id = R.drawable.baseline_search_24), contentDescription ="search" )
+            }
+
+            }
+        )
+
         Spacer(modifier = Modifier.height(16.dp))
 
         // Display a list of chat rooms
         LazyColumn {
-            items(rooms) { room ->
+            items(filteredRooms) { room ->
                 RoomItem(room = room, onJoinClicked = {onJoinClicked(room)})
             }
         }
@@ -127,7 +191,9 @@ fun RoomItem(room: Room, onJoinClicked: (Room) -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .clickable { onJoinClicked(room) },
+            .clickable { onJoinClicked(room) }
+            .background(color = MaterialTheme.colorScheme.textFieldContainer)
+            .clip(RoundedCornerShape(20.dp)), // Rounded corners
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -140,12 +206,12 @@ fun RoomItem(room: Room, onJoinClicked: (Room) -> Unit) {
         Spacer(modifier = Modifier.width(20.dp))
         Column {
             Text(text = room.name,
-                style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
-                color = uiColor
+                style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Medium),
+                color = MaterialTheme.colorScheme.focusedTextFieldText
             )
             Text(text = room.name,
                 style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Light),
-                color = uiColor)
+                color = MaterialTheme.colorScheme.focusedTextFieldText)
         }
         Row (modifier = Modifier
             .fillMaxWidth(),
@@ -154,12 +220,13 @@ fun RoomItem(room: Room, onJoinClicked: (Room) -> Unit) {
         ){
             Text(text = room.name,
                 style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Light),
-                color = uiColor)
+                color = MaterialTheme.colorScheme.focusedTextFieldText)
             Spacer(modifier = Modifier.width(20.dp))
         }
-
     }
+    Divider(modifier = Modifier.padding(8.dp), thickness = DividerDefaults.Thickness, color = uiColor)
 }
+
 
 @Preview(showBackground = true)
 @Composable
