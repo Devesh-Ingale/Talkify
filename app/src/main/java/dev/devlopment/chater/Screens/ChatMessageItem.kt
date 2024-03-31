@@ -200,13 +200,13 @@ fun RoomItem(room: Room, onJoinClicked: (Room) -> Unit) {
         Spacer(modifier = Modifier.width(20.dp))
         Image(painter = painterResource(id = R.drawable.baseline_person_24), contentDescription = "Room Image",
             modifier = Modifier
-                .size(40.dp)  // Adjust the size of the image as per your requirement
+                .size(25.dp)  // Adjust the size of the image as per your requirement
                 .clip(RoundedCornerShape(8.dp)),  // Rounded corners
             contentScale = ContentScale.Crop)
         Spacer(modifier = Modifier.width(20.dp))
         Column {
             Text(text = room.name,
-                style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Medium),
+                style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.focusedTextFieldText
             )
             Text(text = room.name,
