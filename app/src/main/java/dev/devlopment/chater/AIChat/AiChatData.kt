@@ -1,32 +1,33 @@
 package dev.devlopment.chater.AIChat
 
 import com.google.ai.client.generativeai.GenerativeModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 object AiChatData {
-    val api_key = "AIzaSyBleFTa_Tu_UEwD-uISm629EtiXlY_2Jw4"
+    val api_key = "AIzaSyCBNCGUq9q1CS4Y3bgoratlm2m0LDxl_7Y"
 
-    suspend fun getResponse(prompt: String): AiChatbotdata {
+    suspend fun getResponse(prompt: String): AiChatbotdata? {
         val generativeModel = GenerativeModel(
             modelName = "gemini-pro", apiKey = api_key
         )
 
         try {
-            val response = withContext(Dispatchers.IO) {
-                generativeModel.generateContent(prompt)
+            val response = generativeModel.generateContent(prompt)
+
+
+            return response.text?.let {
+                AiChatbotdata(
+                    prompt = it,
+                    isFromUser = false
+                )
             }
 
-            return AiChatbotdata(
-                prompt = response.text ?: "error",
-                isFromUser = false
-            )
-
         } catch (e: Exception) {
-            return AiChatbotdata(
-                prompt = e.message ?: "error",
-                isFromUser = false
-            )
+            return e.message?.let {
+                AiChatbotdata(
+                    prompt = it,
+                    isFromUser = false
+                )
+            }
         }
 
     }

@@ -13,7 +13,6 @@ import kotlinx.coroutines.launch
 
 
 class ChatViewModel : ViewModel() {
-
     private val _chatState = MutableStateFlow(ChatState())
     val chatState = _chatState.asStateFlow()
 
@@ -22,6 +21,8 @@ class ChatViewModel : ViewModel() {
             is ChatUiEvent.SendPrompt -> {
                 if (event.prompt.isNotEmpty()) {
                     addPrompt(event.prompt)
+                    getResponse(event.prompt)
+
                 }
             }
 
@@ -39,7 +40,7 @@ class ChatViewModel : ViewModel() {
                 chatList = it.chatList.toMutableList().apply {
                     add(0, AiChatbotdata(prompt, true))
                 },
-                prompt = "",
+                prompt = ""
             )
         }
     }
@@ -50,7 +51,9 @@ class ChatViewModel : ViewModel() {
             _chatState.update {
                 it.copy(
                     chatList = it.chatList.toMutableList().apply {
-                        add(0, chat)
+                        if (chat != null) {
+                            add(0, chat)
+                        }
                     }
                 )
             }

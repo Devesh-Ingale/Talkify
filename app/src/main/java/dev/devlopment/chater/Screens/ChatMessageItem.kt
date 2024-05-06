@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,7 +27,6 @@ import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -42,17 +40,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.devlopment.chater.R
 import dev.devlopment.chater.Repository.Room
 import dev.devlopment.chater.ViewModels.RoomViewModel
-import dev.devlopment.chater.R
 import dev.devlopment.chater.ui.theme.focusedTextFieldText
 import dev.devlopment.chater.ui.theme.textFieldContainer
 import dev.devlopment.chater.ui.theme.unfocusedTextFieldText
@@ -61,7 +57,8 @@ import dev.devlopment.chater.ui.theme.unfocusedTextFieldText
 @Composable
 fun ChatRoomListScreen(
     roomViewModel: RoomViewModel = viewModel(),
-    onJoinClicked: (Room) -> Unit
+    onJoinClicked: (Room) -> Unit,
+    onAiClicked: () -> Unit
 ) {
     val rooms by roomViewModel.rooms.observeAsState(emptyList())
     var showDialog by remember { mutableStateOf(false) }
@@ -95,7 +92,8 @@ fun ChatRoomListScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         TextField(modifier = Modifier
-            .fillMaxWidth().padding(8.dp)
+            .fillMaxWidth()
+            .padding(8.dp)
             .border(BorderStroke(0.5.dp, color = uiColor), shape = RoundedCornerShape(20.dp)),
             value = searchText,
             onValueChange = { searchText = it },
@@ -124,8 +122,11 @@ fun ChatRoomListScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        AiItem(onAiClicked = onAiClicked)
+
         // Display a list of chat rooms
         LazyColumn {
+
             items(filteredRooms) { room ->
                 RoomItem(room = room, onJoinClicked = {onJoinClicked(room)})
             }
@@ -225,6 +226,50 @@ fun RoomItem(room: Room, onJoinClicked: (Room) -> Unit) {
         }
     }
     Divider(modifier = Modifier.padding(8.dp), thickness = DividerDefaults.Thickness, color = uiColor)
+}
+
+@Composable
+fun AiItem(onAiClicked: () -> Unit){
+    val uiColor: Color = if (isSystemInDarkTheme()) Color.White else Color.Black
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .clickable { onAiClicked() }
+            .background(color = MaterialTheme.colorScheme.textFieldContainer)
+            .clip(RoundedCornerShape(20.dp)), // Rounded corners
+        horizontalArrangement = Arrangement.Start,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Spacer(modifier = Modifier.width(20.dp))
+        Image(painter = painterResource(id = R.drawable.baseline_person_24), contentDescription = "Room Image",
+            modifier = Modifier
+                .size(25.dp)  // Adjust the size of the image as per your requirement
+                .clip(RoundedCornerShape(8.dp)),  // Rounded corners
+            contentScale = ContentScale.Crop)
+        Spacer(modifier = Modifier.width(20.dp))
+        Column {
+            Text(text = "Ai chat",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.focusedTextFieldText
+            )
+            Text(text = "Ai chat",
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Light),
+                color = MaterialTheme.colorScheme.focusedTextFieldText)
+        }
+        Row (modifier = Modifier
+            .fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ){
+            Text(text = "Ai chat",
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Light),
+                color = MaterialTheme.colorScheme.focusedTextFieldText)
+            Spacer(modifier = Modifier.width(20.dp))
+        }
+    }
+    Divider(modifier = Modifier.padding(8.dp), thickness = DividerDefaults.Thickness, color = uiColor)
+
 }
 
 

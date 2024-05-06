@@ -30,12 +30,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.devlopment.chater.R
 import dev.devlopment.chater.Repository.Message
 import dev.devlopment.chater.ViewModels.MessageViewModel
-import dev.devlopment.chater.R
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -172,3 +173,11 @@ private fun formatDate(dateTime: LocalDateTime): String {
     val formatter = DateTimeFormatter.ofPattern("MMM d, yyyy")
     return formatter.format(dateTime)
 }
+
+@Preview(showBackground = true)
+@Composable
+fun ChatMessageItemPreview() {}
+
+@Preview(showBackground = true)
+@Composable
+fun ChatScreenPreview() {}
