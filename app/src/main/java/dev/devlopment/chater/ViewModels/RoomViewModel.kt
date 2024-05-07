@@ -7,16 +7,16 @@ import androidx.lifecycle.viewModelScope
 import dev.devlopment.chater.MainAndUtils.Injection
 import dev.devlopment.chater.Repository.Result
 import dev.devlopment.chater.Repository.Room
-import dev.devlopment.Chater.Repository.RoomRepository
+import dev.devlopment.chater.Repository.RoomRepository
 import kotlinx.coroutines.launch
 
 class RoomViewModel : ViewModel() {
 
     private val _rooms = MutableLiveData<List<Room>>()
     val rooms: LiveData<List<Room>> get() = _rooms
-    private val roomRepository: RoomRepository
+    private val roomRepository: RoomRepository = RoomRepository(Injection.instance())
+
     init {
-        roomRepository = RoomRepository(Injection.instance())
         loadRooms()
     }
 
@@ -26,7 +26,7 @@ class RoomViewModel : ViewModel() {
         }
     }
 
-    fun loadRooms() {
+    private fun loadRooms() {
         viewModelScope.launch {
             when (val result = roomRepository.getRooms()) {
                 is Result.Success -> _rooms.value = result.data

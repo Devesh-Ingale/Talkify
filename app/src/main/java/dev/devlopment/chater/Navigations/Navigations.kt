@@ -4,6 +4,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -22,6 +23,19 @@ fun NavigationGraph(
     navController: NavHostController,
     authViewModel: AuthViewModel
 ) {
+    val loggedInUser = authViewModel.loggedIn.value
+
+    // Navigate based on the authentication result
+    LaunchedEffect(loggedInUser) {
+        loggedInUser?.let {
+            if (it) {
+                navController.navigate(Screen.ChatRoomsScreen.route)
+            } else {
+                navController.navigate(Screen.LoginScreen.route)
+            }
+        }
+    }
+
     NavHost(
         navController = navController,
         startDestination = Screen.LoginScreen.route
@@ -35,10 +49,11 @@ fun NavigationGraph(
         composable(Screen.LoginScreen.route) {
             LoginScreen(
                 authViewModel = authViewModel,
-                OnNavigateToSignUp =  { navController.navigate(Screen.SignupScreen.route) }
-            ) {
-                navController.navigate(Screen.ChatRoomsScreen.route)
-            }
+                OnNavigateToSignUp = { navController.navigate(Screen.SignupScreen.route) },
+                onLoginSuccess = {
+                    navController.navigate(Screen.ChatRoomsScreen.route)
+                }
+            )
         }
         composable(Screen.ChatRoomsScreen.route) {
             ChatRoomListScreen(
@@ -50,7 +65,6 @@ fun NavigationGraph(
                     navController.navigate(Screen.AichatScreen.route)
                 }
             )
-
         }
 
         composable("${Screen.ChatScreen.route}/{roomId}") {
@@ -60,16 +74,13 @@ fun NavigationGraph(
             }
         }
 
-        // Add destination for AiChatScreen
-        composable(Screen.AichatScreen.route){
+        composable(Screen.AichatScreen.route) {
             AiChatScreen(paddingValues = PaddingValues(0.dp))
         }
 
-        // Add destination for AiItem
+        // Placeholder composable for future screens
         composable(Screen.AiItem.route) {
             // No action needed here, as it's just a placeholder for navigation
         }
-
-        
     }
 }

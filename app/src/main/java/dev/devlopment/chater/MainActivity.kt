@@ -11,14 +11,16 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
-import dev.devlopment.chater.ui.theme.ChaterTheme
 import dev.devlopment.chater.Navigations.NavigationGraph
 import dev.devlopment.chater.ViewModels.AuthViewModel
+import dev.devlopment.chater.ui.theme.ChaterTheme
+import android.app.Application
 
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             val navController= rememberNavController()
             val authViewModel: AuthViewModel = viewModel()

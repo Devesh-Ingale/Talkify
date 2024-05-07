@@ -61,9 +61,9 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import dev.devlopment.chater.R
 import dev.devlopment.chater.Repository.Result
 import dev.devlopment.chater.ViewModels.AuthViewModel
-import dev.devlopment.chater.R
 import dev.devlopment.chater.ui.theme.Black
 import dev.devlopment.chater.ui.theme.BlueGray
 import dev.devlopment.chater.ui.theme.Roboto
@@ -76,7 +76,7 @@ import dev.devlopment.chater.ui.theme.unfocusedTextFieldText
 fun LoginScreen(
     authViewModel: AuthViewModel,
     OnNavigateToSignUp: () -> Unit,
-    OnSignInSuccess: () -> Unit
+    onLoginSuccess: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember {
@@ -92,7 +92,7 @@ fun LoginScreen(
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     // Sign in success
-                    OnSignInSuccess()
+                    onLoginSuccess()
                 } else {
                     // Handle sign in failure
                 }
@@ -121,7 +121,7 @@ fun LoginScreen(
         result?.let { authResult ->
             when (authResult) {
                 is Result.Success -> {
-                    OnSignInSuccess()
+                    onLoginSuccess()
                 }
 
                 is Result.Error -> {
@@ -270,7 +270,7 @@ fun LoginScreen(
                     onClick = { authViewModel.login(email, password)
                         when (result) {
                             is Result.Success->{
-                                OnSignInSuccess()
+                                onLoginSuccess()
                             }
                             is Result.Error ->{
 

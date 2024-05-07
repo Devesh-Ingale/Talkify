@@ -36,8 +36,10 @@ class UserRepository(private val auth: FirebaseAuth,
             auth.signInWithEmailAndPassword(email, password).await()
             Result.Success(true)
         } catch (e: Exception) {
+            Log.e("UserRepository", "Login failed: ${e.message}", e) // Add this line for logging
             Result.Error(e)
         }
+
     suspend fun getCurrentUser(): Result<User> = try {
         val uid = auth.currentUser?.email
         if (uid != null) {
