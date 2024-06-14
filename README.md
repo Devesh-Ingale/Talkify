@@ -1,6 +1,3 @@
-Certainly! Here's a GitHub README template for your Talkify project:
-
----
 
 # Talkify
 
@@ -82,4 +79,3 @@ Project Link: [https://github.com/Devesh-Ingale/Talkify](https://github.com/Deve
 
 ---
 
-This README provides an overview of the Talkify project, highlighting its key features, technologies used, installation instructions, usage guidelines, contribution guidelines, and contact information. Adjust the paths to screenshots and other details as per your project structure and preferences.
