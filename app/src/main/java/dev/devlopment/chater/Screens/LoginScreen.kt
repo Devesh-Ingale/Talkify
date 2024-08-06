@@ -55,18 +55,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import dev.devlopment.chater.R
 import dev.devlopment.chater.Repository.Result
 import dev.devlopment.chater.ViewModels.AuthViewModel
-import dev.devlopment.chater.R
 import dev.devlopment.chater.ui.theme.Black
 import dev.devlopment.chater.ui.theme.BlueGray
-import dev.devlopment.chater.ui.theme.Roboto
 import dev.devlopment.chater.ui.theme.focusedTextFieldText
 import dev.devlopment.chater.ui.theme.textFieldContainer
 import dev.devlopment.chater.ui.theme.unfocusedTextFieldText
@@ -75,16 +74,14 @@ import dev.devlopment.chater.ui.theme.unfocusedTextFieldText
 @Composable
 fun LoginScreen(
     authViewModel: AuthViewModel,
-    OnNavigateToSignUp: () -> Unit,
-    OnSignInSuccess: () -> Unit
+    onNavigateToSignUp: () -> Unit,
+    onLoginSuccess: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
-    var password by remember {
-        mutableStateOf("")
-    }
+    var password by remember { mutableStateOf("") }
     val result by authViewModel.authResult.observeAsState()
     val result2 by authViewModel.forgotPasswordResult.observeAsState()
-
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     fun firebaseAuthWithGoogle(idToken: String) {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
@@ -92,9 +89,9 @@ fun LoginScreen(
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     // Sign in success
-                    OnSignInSuccess()
+                    onLoginSuccess()
                 } else {
-                    // Handle sign in failure
+                    errorMessage = task.exception?.message
                 }
             }
     }
@@ -108,24 +105,22 @@ fun LoginScreen(
                 val account = task.getResult(ApiException::class.java)!!
                 firebaseAuthWithGoogle(account.idToken!!)
             } catch (e: ApiException) {
-                // Handle sign in failure
+                errorMessage = "Google sign-in failed: ${e.localizedMessage}"
             }
         }
     }
-
-
-
-
 
     LaunchedEffect(result) {
         result?.let { authResult ->
             when (authResult) {
                 is Result.Success -> {
-                    OnSignInSuccess()
+                    onLoginSuccess()
                 }
-
                 is Result.Error -> {
-                    // Handle error if needed
+                    errorMessage = when (authResult.exception) {
+                        is FirebaseNetworkException -> "Network error: Please check your internet connection and try again."
+                        else -> authResult.exception.message
+                    }
                 }
             }
         }
@@ -139,17 +134,14 @@ fun LoginScreen(
                     // with a message that the password reset email has been sent
                 }
                 is Result.Error -> {
-                    // Handle error, possibly show a snackbar or toast
-                    // with the error message
+                    errorMessage = result.exception.message
                 }
             }
         }
     }
 
-
     Surface {
         Column(modifier = Modifier.fillMaxSize()) {
-
             val uiColor: Color = if (isSystemInDarkTheme()) Color.White else Color.Black
             val background: Painter = if (isSystemInDarkTheme()) {
                 painterResource(id = R.drawable.shapedark)
@@ -171,9 +163,7 @@ fun LoginScreen(
                 Row(
                     modifier = Modifier.padding(top = 80.dp),
                     verticalAlignment = Alignment.CenterVertically
-                )
-                {
-
+                ) {
                     Icon(
                         modifier = Modifier.size(42.dp),
                         painter = painterResource(id = R.drawable.logo),
@@ -187,7 +177,6 @@ fun LoginScreen(
                             style = MaterialTheme.typography.headlineMedium,
                             color = uiColor
                         )
-
                         Text(
                             text = stringResource(id = R.string.headline),
                             style = MaterialTheme.typography.titleMedium,
@@ -203,7 +192,6 @@ fun LoginScreen(
                     style = MaterialTheme.typography.headlineLarge,
                     color = uiColor
                 )
-
             }
 
             Spacer(modifier = Modifier.height(36.dp))
@@ -237,7 +225,7 @@ fun LoginScreen(
                     onValueChange = { password = it },
                     label = {
                         Text(
-                            text = "password",
+                            text = "Password",
                             style = MaterialTheme.typography.labelMedium,
                             color = uiColor
                         )
@@ -261,26 +249,11 @@ fun LoginScreen(
                 )
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Existing Code...
-
                 Button(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(40.dp),
-                    onClick = { authViewModel.login(email, password)
-                        when (result) {
-                            is Result.Success->{
-                                OnSignInSuccess()
-                            }
-                            is Result.Error ->{
-
-                            }
-
-                            else -> {
-
-                            }
-                        }
-                              },
+                    onClick = { authViewModel.login(email, password) },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (isSystemInDarkTheme()) BlueGray else Black,
                         contentColor = Color.White
@@ -293,25 +266,29 @@ fun LoginScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))  // Add Spacer for spacing
+                Spacer(modifier = Modifier.height(16.dp))
+
+                if (errorMessage != null) {
+                    Text(
+                        text = errorMessage!!,
+                        color = Color.Red,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                }
 
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(horizontal = 30.dp)
                 ) {
-                    // Existing TextField components...
-
                     Spacer(modifier = Modifier.height(20.dp))
 
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-
                         Text(
                             text = "Or continue with",
                             style = MaterialTheme.typography.labelMedium.copy(
-                                color = Color(
-                                    0xFF64748B
-                                )
+                                color = Color(0xFF64748B)
                             )
                         )
 
@@ -321,7 +298,6 @@ fun LoginScreen(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // Existing social login options...
                             val context = LocalContext.current
                             Row(
                                 modifier = Modifier
@@ -330,11 +306,10 @@ fun LoginScreen(
                                     .clickable {
                                         val gso = GoogleSignInOptions
                                             .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                                            .requestIdToken(R.string.default_web_client_id.toString())
+                                            .requestIdToken(context.getString(R.string.default_web_client_id))
                                             .requestEmail()
                                             .build()
-                                        val googleSignInClient =
-                                            GoogleSignIn.getClient(context, gso)
+                                        val googleSignInClient = GoogleSignIn.getClient(context, gso)
                                         val signInIntent = googleSignInClient.signInIntent
                                         googleSignInLauncher.launch(signInIntent)
                                     }
@@ -356,7 +331,6 @@ fun LoginScreen(
                                     )
                                 )
                             }
-
                         }
                     }
 
@@ -366,42 +340,34 @@ fun LoginScreen(
                         modifier = Modifier
                             .fillMaxHeight(fraction = 0.8f)
                             .fillMaxWidth()
-                            .clickable { OnNavigateToSignUp() },
+                            .clickable { onNavigateToSignUp() },
                         contentAlignment = Alignment.BottomCenter
                     ) {
                         Text(
                             buildAnnotatedString {
                                 withStyle(
                                     style = SpanStyle(
-                                        color = Color(0xFF94A3B8),
-                                        fontSize = 14.sp,
-                                        fontFamily = Roboto,
-                                        fontWeight = FontWeight.Normal
+                                        color = uiColor.copy(alpha = 0.5f)
                                     )
-                                ) {
-                                    append("Don't have Account?")
-                                }
+                                ) { append("Don’t have an account? ") }
+
                                 withStyle(
                                     style = SpanStyle(
-                                        color = uiColor,
-                                        fontSize = 14.sp,
-                                        fontFamily = Roboto,
-                                        fontWeight = FontWeight.Medium
+                                        color = if (isSystemInDarkTheme()) BlueGray else Black,
+                                        fontWeight = FontWeight.SemiBold
                                     )
-                                ) {
-                                    append(" ")
-                                    append("Sign up")
-                                }
+                                ) { append("Sign up") }
                             }
                         )
                     }
+
+                    Spacer(modifier = Modifier.height(30.dp))
                 }
-
-
             }
         }
     }
 }
+
     @SuppressLint("ModifierFactoryUnreferencedReceiver")
     fun Modifier.socialMedia(): Modifier = composed {
         if (isSystemInDarkTheme()) {

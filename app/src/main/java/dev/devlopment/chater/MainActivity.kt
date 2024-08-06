@@ -11,24 +11,27 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
-import dev.devlopment.chater.ui.theme.ChaterTheme
 import dev.devlopment.chater.Navigations.NavigationGraph
 import dev.devlopment.chater.ViewModels.AuthViewModel
+import dev.devlopment.chater.ViewModels.RoomViewModel
+import dev.devlopment.chater.ui.theme.ChaterTheme
 
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             val navController= rememberNavController()
             val authViewModel: AuthViewModel = viewModel()
+            val roomViewModel: RoomViewModel = viewModel()
             ChaterTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    NavigationGraph(navController = navController, authViewModel = authViewModel)
+                    NavigationGraph(navController = navController, authViewModel = authViewModel, roomViewModel = roomViewModel)
                 }
             }
         }

@@ -7,5 +7,6 @@ sealed class Screen(val route:String){
     object ChatScreen: Screen("chatscreen")
     object AichatScreen: Screen("Aichatscreen")
 
+    object JoinRequestsScreen: Screen("joinrequestscreen")
     object AiItem:Screen("AiItem")
 }
