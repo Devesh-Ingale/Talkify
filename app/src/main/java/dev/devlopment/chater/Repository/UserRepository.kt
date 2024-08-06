@@ -18,9 +18,8 @@ class UserRepository(private val auth: FirebaseAuth, private val firestore: Fire
 
     suspend fun signUp(email: String, password: String, firstName: String, lastName: String): Result<Boolean> {
         return try {
-            val userCredential = auth.createUserWithEmailAndPassword(email, password).await()
-            val userId = userCredential.user?.uid ?: throw Exception("User ID is null")
-            val user = User(userId, firstName, lastName, email)
+            auth.createUserWithEmailAndPassword(email, password).await()
+            val user = User(email, firstName, lastName, email)
             saveUserToFirestore(user)
             Result.Success(true)
         } catch (e: Exception) {
@@ -44,12 +43,12 @@ class UserRepository(private val auth: FirebaseAuth, private val firestore: Fire
 
     suspend fun getCurrentUser(): Result<User> {
         return try {
-            val userId = auth.currentUser?.uid
-            if (userId != null) {
-                val userDocument = firestore.collection("users").document(userId).get().await()
+            val email = auth.currentUser?.email
+            if (email != null) {
+                val userDocument = firestore.collection("users").document(email).get().await()
                 val user = userDocument.toObject(User::class.java)
                 if (user != null) {
-                    Log.d("UserRepository", "User fetched: $userId")
+                    Log.d("UserRepository", "User fetched: $email")
                     Result.Success(user)
                 } else {
                     Result.Error(Exception("User data not found"))
