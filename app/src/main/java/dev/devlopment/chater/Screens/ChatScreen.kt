@@ -1,8 +1,10 @@
 package dev.devlopment.chater.Screens
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,20 +13,28 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,6 +47,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.devlopment.chater.R
 import dev.devlopment.chater.Repository.Message
 import dev.devlopment.chater.ViewModels.MessageViewModel
+import dev.devlopment.chater.ViewModels.RoomViewModel
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -46,25 +57,49 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun ChatScreen(
     roomId: String,
-    messageViewModel:
-    MessageViewModel = viewModel(),
+    isCreator: Boolean,
+    messageViewModel: MessageViewModel = viewModel(),
+    roomViewModel: RoomViewModel = viewModel()
 ) {
     val messages by messageViewModel.messages.observeAsState(emptyList())
     messageViewModel.setRoomId(roomId)
     val text = remember { mutableStateOf("") }
+    val showDialog = remember { mutableStateOf(false) }
+    val showDialog2 = remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
+        // Button to display room ID for creator
+        if (isCreator) {
+            Button(
+                onClick = {
+                    showDialog.value = true
+                },
+                modifier = Modifier.padding(8.dp)
+            ) {
+                Text(text = "Show Room ID")
+            }
+        }
+
+        // Join requests section for creator
+        if (isCreator) {
+            Button(
+                onClick = { showDialog2.value = true },
+                modifier = Modifier.padding(8.dp)
+            ) {
+                Text(text = "Show Join Requests")
+            }
+        }
+
         // Display the chat messages
         LazyColumn(
             modifier = Modifier.weight(1f)
-        )  {
+        ) {
             items(messages) { message ->
-                ChatMessageItem(message =  message.copy(isSentByCurrentUser
-                = message.senderId == messageViewModel.currentUser.value?.email)
-                )
+                ChatMessageItem(message = message.copy(isSentByCurrentUser = message.senderId == messageViewModel.currentUser.value?.email))
             }
         }
 
@@ -98,8 +133,87 @@ fun ChatScreen(
             }
         }
     }
+
+    // Room ID dialog
+    if (showDialog.value) {
+        AlertDialog(
+            onDismissRequest = { showDialog.value = false },
+            title = { Text(text = "Room ID") },
+            text = { Text(text = roomId) },
+            confirmButton = {
+                Button(
+                    onClick = { showDialog.value = false }
+                ) {
+                    Text(text = "OK")
+                }
+            }
+        )
+    }
+
+    if (showDialog2.value) {
+        JoinRequestsDialog(
+            roomId = roomId,
+            roomViewModel = roomViewModel,
+            onDismiss = { showDialog2.value = false }
+        )
+    }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun JoinRequestsDialog(
+    roomId: String,
+    roomViewModel: RoomViewModel,
+    onDismiss: () -> Unit
+) {
+    val joinRequests by roomViewModel.joinRequests.observeAsState(emptyList())
+
+    LaunchedEffect(roomId) {
+        roomViewModel.loadJoinRequests(roomId)
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = "Join Requests") },
+        text = {
+            Column {
+                LazyColumn {
+                    items(joinRequests) { (userId, userName) ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp)
+                        ) {
+                            Text(text = userName) // Display the user name
+                            Row {
+                                Button(onClick = {
+                                    Log.d("JoinRequestsDialog", "Approve clicked for $userName")
+                                    roomViewModel.approveJoinRequest(roomId, userId)
+                                }) {
+                                    Text(text = "Accept")
+                                }
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Button(onClick = {
+                                    Log.d("JoinRequestsDialog", "Deny clicked for $userName")
+                                    roomViewModel.declineJoinRequest(roomId, userId)
+                                }) {
+                                    Text(text = "Deny")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = onDismiss) {
+                Text(text = "Close")
+            }
+        }
+    )
+}
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -142,19 +256,65 @@ fun ChatMessageItem(message: Message) {
         )
     }
 }
+@Composable
+fun RoomListScreen(roomViewModel: RoomViewModel = viewModel(), currentUserEmail: String) {
+    var showDialog by remember { mutableStateOf(false) }
+    var roomId by remember { mutableStateOf("") }
+
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        // Existing code to display the list of rooms
+
+        FloatingActionButton(
+            onClick = { showDialog = true },
+            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
+        ) {
+            Icon(imageVector = Icons.Default.Add, contentDescription = "Join Room")
+        }
+    }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text(text = "Join Room") },
+            text = {
+                Column {
+                    Text(text = "Enter Room ID")
+                    TextField(value = roomId, onValueChange = { roomId = it })
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    roomViewModel.requestToJoinRoom(roomId)
+                    showDialog = false
+                }) {
+                    Text(text = "Send Request")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { showDialog = false }) {
+                    Text(text = "Cancel")
+                }
+            }
+        )
+    }
+}
 
 @RequiresApi(Build.VERSION_CODES.O)
 private fun formatTimestamp(timestamp: Long): String {
     val messageDateTime =
         LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault())
     val now = LocalDateTime.now()
-
-    return when {
-        isSameDay(messageDateTime, now) -> "today ${formatTime(messageDateTime)}"
-        isSameDay(messageDateTime.plusDays(1), now) -> "yesterday ${formatTime(messageDateTime)}"
-        else -> formatDate(messageDateTime)
+    val formatter = if (messageDateTime.toLocalDate() == now.toLocalDate()) {
+        DateTimeFormatter.ofPattern("HH:mm")
+    } else {
+        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
     }
+    return messageDateTime.format(formatter)
 }
+
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 private fun isSameDay(dateTime1: LocalDateTime, dateTime2: LocalDateTime): Boolean {

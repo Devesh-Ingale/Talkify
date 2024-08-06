@@ -7,7 +7,7 @@ object AiChatData {
 
     suspend fun getResponse(prompt: String): AiChatbotdata? {
         val generativeModel = GenerativeModel(
-            modelName = "gemini-pro", apiKey = api_key
+            modelName = "gemini-1.5-flash", apiKey = api_key
         )
 
         try {

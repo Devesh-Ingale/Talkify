@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "876072881170",
-    "project_id": "chatroomapp-4cfbd",
-    "storage_bucket": "chatroomapp-4cfbd.appspot.com"
+    "project_number": "999581822385",
+    "project_id": "chatapp-35614",
+    "storage_bucket": "chatapp-35614.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:876072881170:android:5bd9aebd7b1a188e141ccb",
+        "mobilesdk_app_id": "1:999581822385:android:8b0619b651ab2169faa190",
         "android_client_info": {
           "package_name": "dev.devlopment.chater"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyD1Bdr2BGXG0mxl0MjoUNB7NbzkugFl4GM"
+          "current_key": "AIzaSyAfTPvg3Fmmr_6GaACODdg5oLcipEY3XKg"
         }
       ],
       "services": {

@@ -17,9 +17,11 @@ class AuthViewModel : ViewModel() {
         Injection.instance()
     )
 
+    private val _currentUserEmail = MutableLiveData<String?>()
+    val currentUserEmail: MutableLiveData<String?> get() = _currentUserEmail
+
     init {
         SharedPreferencesManager.initialize()
-        // Check if it's the first launch or if the user has logged out
         val isFirstLaunchOrLoggedOut = !SharedPreferencesManager.getBoolean("isLoggedIn", false)
         if (!isFirstLaunchOrLoggedOut) {
             attemptAutoLogin()
@@ -30,7 +32,6 @@ class AuthViewModel : ViewModel() {
     val authResult: LiveData<Result<Boolean>> get() = _authResult
 
     private val _loggedIn = MutableLiveData<Boolean>().apply { value = false }
-
     val loggedIn: LiveData<Boolean> get() = _loggedIn
 
     private fun attemptAutoLogin() {
@@ -40,16 +41,17 @@ class AuthViewModel : ViewModel() {
         if (storedEmail.isNotEmpty() && storedPassword.isNotEmpty()) {
             login(storedEmail, storedPassword)
         } else {
-            _loggedIn.value = false // Potential source of the NullPointerException
+            _loggedIn.value = false
         }
     }
 
-
     fun signUp(email: String, password: String, firstName: String, lastName: String) {
         viewModelScope.launch {
-            _authResult.value = userRepository.signUp(email, password, firstName, lastName)
-            if (_authResult.value is Result.Success) {
+            val result = userRepository.signUp(email, password, firstName, lastName)
+            _authResult.value = result
+            if (result is Result.Success) {
                 _loggedIn.value = true
+                _currentUserEmail.value = email
             }
         }
     }
@@ -64,15 +66,13 @@ class AuthViewModel : ViewModel() {
                     SharedPreferencesManager.saveString("password", password)
                     SharedPreferencesManager.saveBoolean("isLoggedIn", true)
                     _loggedIn.value = true
+                    _currentUserEmail.value = email
                 }
             } else {
-                // Handle the case when the result is null
+                _authResult.value = Result.Error(Exception("Login failed"))
             }
         }
     }
-
-    private val _forgotPasswordResult: MutableLiveData<Result<Unit>> = MutableLiveData()
-    val forgotPasswordResult: LiveData<Result<Unit>> = _forgotPasswordResult
 
     fun sendPasswordResetEmail(email: String) {
         viewModelScope.launch {
@@ -85,8 +85,9 @@ class AuthViewModel : ViewModel() {
         SharedPreferencesManager.clearAll()
         SharedPreferencesManager.saveBoolean("isLoggedIn", false)
         _loggedIn.value = false
+        _currentUserEmail.value = null
     }
+
+    private val _forgotPasswordResult: MutableLiveData<Result<Unit>> = MutableLiveData()
+    val forgotPasswordResult: LiveData<Result<Unit>> get() = _forgotPasswordResult
 }
-
-
-
