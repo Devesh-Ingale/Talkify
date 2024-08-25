@@ -6,8 +6,9 @@ data class User(
     val firstName: String = "",
     val lastName: String = "",
     val email: String = "",
-    val createdRooms: List<String> = listOf(),
-    val joinedRooms: List<String> = listOf()
+    val createdRoom: String? = null,
+    val joinedRooms: List<String> = listOf(),
+    val userJoinLink: String = ""
 )
 
 

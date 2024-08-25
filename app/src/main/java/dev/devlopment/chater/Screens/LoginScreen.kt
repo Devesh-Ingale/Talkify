@@ -2,15 +2,11 @@
 package dev.devlopment.chater.Screens
 
 import android.annotation.SuppressLint
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -42,11 +38,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -55,12 +49,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.common.api.ApiException
 import com.google.firebase.FirebaseNetworkException
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.GoogleAuthProvider
 import dev.devlopment.chater.R
 import dev.devlopment.chater.Repository.Result
 import dev.devlopment.chater.ViewModels.AuthViewModel
@@ -83,32 +72,32 @@ fun LoginScreen(
     val result2 by authViewModel.forgotPasswordResult.observeAsState()
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    fun firebaseAuthWithGoogle(idToken: String) {
-        val credential = GoogleAuthProvider.getCredential(idToken, null)
-        FirebaseAuth.getInstance().signInWithCredential(credential)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    // Sign in success
-                    onLoginSuccess()
-                } else {
-                    errorMessage = task.exception?.message
-                }
-            }
-    }
-
-    val googleSignInLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == ComponentActivity.RESULT_OK) {
-            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-            try {
-                val account = task.getResult(ApiException::class.java)!!
-                firebaseAuthWithGoogle(account.idToken!!)
-            } catch (e: ApiException) {
-                errorMessage = "Google sign-in failed: ${e.localizedMessage}"
-            }
-        }
-    }
+//    fun firebaseAuthWithGoogle(idToken: String) {
+//        val credential = GoogleAuthProvider.getCredential(idToken, null)
+//        FirebaseAuth.getInstance().signInWithCredential(credential)
+//            .addOnCompleteListener { task ->
+//                if (task.isSuccessful) {
+//                    // Sign in success
+//                    onLoginSuccess()
+//                } else {
+//                    errorMessage = task.exception?.message
+//                }
+//            }
+//    }
+//
+//    val googleSignInLauncher = rememberLauncherForActivityResult(
+//        contract = ActivityResultContracts.StartActivityForResult()
+//    ) { result ->
+//        if (result.resultCode == ComponentActivity.RESULT_OK) {
+//            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+//            try {
+//                val account = task.getResult(ApiException::class.java)!!
+//                firebaseAuthWithGoogle(account.idToken!!)
+//            } catch (e: ApiException) {
+//                errorMessage = "Google sign-in failed: ${e.localizedMessage}"
+//            }
+//        }
+//    }
 
     LaunchedEffect(result) {
         result?.let { authResult ->
@@ -284,55 +273,55 @@ fun LoginScreen(
                 ) {
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "Or continue with",
-                            style = MaterialTheme.typography.labelMedium.copy(
-                                color = Color(0xFF64748B)
-                            )
-                        )
-
-                        Spacer(modifier = Modifier.height(20.dp))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            val context = LocalContext.current
-                            Row(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .socialMedia()
-                                    .clickable {
-                                        val gso = GoogleSignInOptions
-                                            .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                                            .requestIdToken(context.getString(R.string.default_web_client_id))
-                                            .requestEmail()
-                                            .build()
-                                        val googleSignInClient = GoogleSignIn.getClient(context, gso)
-                                        val signInIntent = googleSignInClient.signInIntent
-                                        googleSignInLauncher.launch(signInIntent)
-                                    }
-                                    .height(40.dp)
-                                    .weight(1f),
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.google),
-                                    contentDescription = "Google",
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(5.dp))
-                                Text(
-                                    text = "Google",
-                                    style = MaterialTheme.typography.labelMedium.copy(
-                                        color = Color(0xFF64748B)
-                                    )
-                                )
-                            }
-                        }
-                    }
+//                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+//                        Text(
+//                            text = "Or continue with",
+//                            style = MaterialTheme.typography.labelMedium.copy(
+//                                color = Color(0xFF64748B)
+//                            )
+//                        )
+//
+//                        Spacer(modifier = Modifier.height(20.dp))
+//
+//                        Row(
+//                            modifier = Modifier.fillMaxWidth(),
+//                            verticalAlignment = Alignment.CenterVertically
+//                        ) {
+//                            val context = LocalContext.current
+//                            Row(
+//                                modifier = Modifier
+//                                    .clip(RoundedCornerShape(4.dp))
+//                                    .socialMedia()
+//                                    .clickable {
+//                                        val gso = GoogleSignInOptions
+//                                            .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+//                                            .requestIdToken(context.getString(R.string.default_web_client_id))
+//                                            .requestEmail()
+//                                            .build()
+//                                        val googleSignInClient = GoogleSignIn.getClient(context, gso)
+//                                        val signInIntent = googleSignInClient.signInIntent
+//                                        googleSignInLauncher.launch(signInIntent)
+//                                    }
+//                                    .height(40.dp)
+//                                    .weight(1f),
+//                                horizontalArrangement = Arrangement.Center,
+//                                verticalAlignment = Alignment.CenterVertically
+//                            ) {
+//                                Image(
+//                                    painter = painterResource(id = R.drawable.google),
+//                                    contentDescription = "Google",
+//                                    modifier = Modifier.size(16.dp)
+//                                )
+//                                Spacer(modifier = Modifier.width(5.dp))
+//                                Text(
+//                                    text = "Google",
+//                                    style = MaterialTheme.typography.labelMedium.copy(
+//                                        color = Color(0xFF64748B)
+//                                    )
+//                                )
+//                            }
+//                        }
+//                    }
 
                     Spacer(modifier = Modifier.height(20.dp))
 

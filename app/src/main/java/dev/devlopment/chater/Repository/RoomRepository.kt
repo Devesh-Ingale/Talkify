@@ -10,28 +10,32 @@ class RoomRepository(private val firestore: FirebaseFirestore) {
 
     suspend fun createRoom(name: String, userId: String): Result<Unit> {
         return try {
-            // Fetch the user document
+            Log.d("RoomRepository", "Fetching user document...")
             val userDoc = firestore.collection("users").document(userId).get().await()
-            val createdRooms = userDoc.get("createdRooms") as? List<String> ?: emptyList()
+            Log.d("RoomRepository", "User document fetched.")
+            val createdRoom = userDoc.getString("createdRoom")
 
-            // Check if the user has already created 5 rooms
-            if (createdRooms.size >= 5) {
-                return Result.Error(Exception("You can only create up to 5 rooms."))
+            if (createdRoom != null) {
+                Log.e("RoomRepository", "User already created a room.")
+                return Result.Error(Exception("You can only create one room."))
             }
 
-            // Generate a unique 6-digit ID
             val roomId = generateUniqueRoomId()
+            Log.d("RoomRepository", "Generated room ID: $roomId")
 
-            // Create the room object
-            val room = Room(id = roomId, name = name, creatorId = userId)
-
-            // Add the room to Firestore
+            val room = Room(id = roomId, name = name, creatorId = userId, members = listOf(userId))
+            Log.d("RoomRepository", "Creating room in Firestore...")
             firestore.collection("rooms").document(roomId).set(room).await()
+            Log.d("RoomRepository", "Room created in Firestore.")
 
-            // Update the user's createdRooms list
+            Log.d("RoomRepository", "Updating user document with createdRoom and joinedRooms...")
             firestore.collection("users").document(userId).update(
-                "createdRooms", createdRooms + roomId
+                mapOf(
+                    "createdRoom" to roomId,
+                    "joinedRooms" to listOf(roomId)
+                )
             ).await()
+            Log.d("RoomRepository", "User document updated.")
 
             Result.Success(Unit)
         } catch (e: Exception) {
@@ -138,7 +142,7 @@ class RoomRepository(private val firestore: FirebaseFirestore) {
                 } else {
                     Log.d("RoomRepository", "Fetched user: ${user.firstName} ${user.lastName} for userId: $userId")
                 }
-                Pair(userId, "${user?.firstName ?: ""} ${user?.lastName ?: ""}")
+                Pair(userId, "${user?.firstName ?: ""} ${""}")
             }
 
             Result.Success(userNames)
@@ -162,4 +166,5 @@ class RoomRepository(private val firestore: FirebaseFirestore) {
             Result.Error(e)
         }
     }
+
 }
