@@ -9,7 +9,9 @@ import dev.devlopment.chater.MainAndUtils.Injection
 import dev.devlopment.chater.MainAndUtils.SharedPreferencesManager
 import dev.devlopment.chater.Repository.Result
 import dev.devlopment.chater.Repository.UserRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class AuthViewModel : ViewModel() {
     private val userRepository: UserRepository = UserRepository(
@@ -18,7 +20,7 @@ class AuthViewModel : ViewModel() {
     )
 
     private val _currentUserEmail = MutableLiveData<String?>()
-    val currentUserEmail: MutableLiveData<String?> get() = _currentUserEmail
+    val currentUserEmail: LiveData<String?> get() = _currentUserEmail
 
     init {
         SharedPreferencesManager.initialize()
@@ -47,7 +49,9 @@ class AuthViewModel : ViewModel() {
 
     fun signUp(email: String, password: String, firstName: String, lastName: String) {
         viewModelScope.launch {
-            val result = userRepository.signUp(email, password, firstName, lastName)
+            val result = withContext(Dispatchers.IO) {
+                userRepository.signUp(email, password, firstName, lastName)
+            }
             _authResult.value = result
             if (result is Result.Success) {
                 _loggedIn.value = true
@@ -58,7 +62,9 @@ class AuthViewModel : ViewModel() {
 
     fun login(email: String, password: String) {
         viewModelScope.launch {
-            val result = userRepository.login(email, password)
+            val result = withContext(Dispatchers.IO) {
+                userRepository.login(email, password)
+            }
             if (result != null) {
                 _authResult.value = result
                 if (result is Result.Success) {
@@ -74,9 +80,14 @@ class AuthViewModel : ViewModel() {
         }
     }
 
+    private val _forgotPasswordResult: MutableLiveData<Result<Unit>> = MutableLiveData()
+    val forgotPasswordResult: LiveData<Result<Unit>> get() = _forgotPasswordResult
+
     fun sendPasswordResetEmail(email: String) {
         viewModelScope.launch {
-            val result = userRepository.sendPasswordResetEmail(email)
+            val result = withContext(Dispatchers.IO) {
+                userRepository.sendPasswordResetEmail(email)
+            }
             _forgotPasswordResult.postValue(result)
         }
     }
@@ -86,8 +97,6 @@ class AuthViewModel : ViewModel() {
         SharedPreferencesManager.saveBoolean("isLoggedIn", false)
         _loggedIn.value = false
         _currentUserEmail.value = null
+        println("User logged out, navigating to login screen")
     }
-
-    private val _forgotPasswordResult: MutableLiveData<Result<Unit>> = MutableLiveData()
-    val forgotPasswordResult: LiveData<Result<Unit>> get() = _forgotPasswordResult
 }

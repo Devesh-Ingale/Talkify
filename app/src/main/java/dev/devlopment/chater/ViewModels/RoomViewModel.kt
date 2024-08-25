@@ -12,7 +12,9 @@ import dev.devlopment.chater.Repository.Room
 import dev.devlopment.chater.Repository.RoomRepository
 import dev.devlopment.chater.Repository.User
 import dev.devlopment.chater.Repository.UserRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class RoomViewModel : ViewModel() {
 
@@ -30,14 +32,17 @@ class RoomViewModel : ViewModel() {
     private val _joinRoomResult = MutableLiveData<Result<Unit>>()
     val joinRoomResult: LiveData<Result<Unit>> get() = _joinRoomResult
 
-    private val _approveJoinRequestResult = MutableLiveData<Result<Unit>>()
-    val approveJoinRequestResult: LiveData<Result<Unit>> get() = _approveJoinRequestResult
+    private val _approveJoinRequestResult = MutableLiveData<Result<Unit>?>()
+    val approveJoinRequestResult: MutableLiveData<Result<Unit>?> get() = _approveJoinRequestResult
 
     private val _joinRequests = MutableLiveData<List<Pair<String, String>>>()
     val joinRequests: LiveData<List<Pair<String, String>>> get() = _joinRequests
 
     private var currentUserEmail: String? = null
     private var currentUserId: String? = null
+
+    private val _userJoinLink = MutableLiveData<String>()
+    val userJoinLink: LiveData<String> get() = _userJoinLink
 
     init {
         loadCurrentUser()
@@ -46,7 +51,10 @@ class RoomViewModel : ViewModel() {
 
     private fun loadCurrentUser() {
         viewModelScope.launch {
-            when (val result = userRepository.getCurrentUser()) {
+            val result = withContext(Dispatchers.IO) {
+                userRepository.getCurrentUser()
+            }
+            when (result) {
                 is Result.Success -> {
                     _currentUser.value = result.data
                     currentUserEmail = result.data.email
@@ -63,7 +71,9 @@ class RoomViewModel : ViewModel() {
     fun createRoom(name: String) {
         _currentUser.value?.let { user ->
             viewModelScope.launch {
-                val result = roomRepository.createRoom(name, user.userId)
+                val result = withContext(Dispatchers.IO) {
+                    roomRepository.createRoom(name, user.userId)
+                }
                 _createRoomResult.value = result
                 if (result is Result.Success) {
                     loadRooms()
@@ -71,23 +81,25 @@ class RoomViewModel : ViewModel() {
                     Log.e("RoomViewModel", "Error creating room: ${result.exception.message}")
                 }
             }
-        }
+        } ?: Log.e("RoomViewModel", "No current user found!")
     }
-
 
     private fun loadRooms() {
         viewModelScope.launch {
             currentUserId?.let { userId ->
-                when (val result = roomRepository.getRooms()) {
+                val result = withContext(Dispatchers.IO) {
+                    roomRepository.getRooms()
+                }
+                when (result) {
                     is Result.Success -> {
                         val filteredRooms = result.data.filter { room ->
                             room.members.contains(userId) || room.creatorId == userId
                         }
-                        Log.d("RoomViewModel", "Fetched rooms: $filteredRooms") // Add this line
+                        Log.d("RoomViewModel", "Fetched rooms: $filteredRooms")
                         _rooms.value = filteredRooms
                     }
                     is Result.Error -> {
-                        Log.e("RoomViewModel", "Error fetching rooms: ${result.exception}") // Add this line
+                        Log.e("RoomViewModel", "Error fetching rooms: ${result.exception}")
                         // Handle error
                     }
                 }
@@ -99,7 +111,9 @@ class RoomViewModel : ViewModel() {
         _currentUser.value?.let { user ->
             viewModelScope.launch {
                 _joinRoomResult.value = try {
-                    roomRepository.requestToJoinRoom(roomId, user.userId)
+                    withContext(Dispatchers.IO) {
+                        roomRepository.requestToJoinRoom(roomId, user.userId)
+                    }
                     Result.Success(Unit)
                 } catch (e: Exception) {
                     Result.Error(e)
@@ -111,7 +125,9 @@ class RoomViewModel : ViewModel() {
     fun approveJoinRequest(roomId: String, userId: String) {
         viewModelScope.launch {
             Log.d("RoomViewModel", "Approving join request for userId: $userId in roomId: $roomId")
-            _approveJoinRequestResult.value = roomRepository.approveJoinRequest(roomId, userId)
+            _approveJoinRequestResult.value = withContext(Dispatchers.IO) {
+                roomRepository.approveJoinRequest(roomId, userId)
+            }
             loadJoinRequests(roomId) // Reload join requests after approval
         }
     }
@@ -119,7 +135,9 @@ class RoomViewModel : ViewModel() {
     fun declineJoinRequest(roomId: String, userId: String) {
         viewModelScope.launch {
             Log.d("RoomViewModel", "Declining join request for userId: $userId in roomId: $roomId")
-            _approveJoinRequestResult.value = roomRepository.declineJoinRequest(roomId, userId)
+            _approveJoinRequestResult.value = withContext(Dispatchers.IO) {
+                roomRepository.declineJoinRequest(roomId, userId)
+            }
             loadJoinRequests(roomId) // Reload join requests after decline
         }
     }
@@ -127,13 +145,58 @@ class RoomViewModel : ViewModel() {
     fun loadJoinRequests(roomId: String) {
         viewModelScope.launch {
             Log.d("RoomViewModel", "Loading join requests for roomId: $roomId")
-            when (val result = roomRepository.getJoinRequests(roomId)) {
+            val result = withContext(Dispatchers.IO) {
+                roomRepository.getJoinRequests(roomId)
+            }
+            when (result) {
                 is Result.Success -> {
                     _joinRequests.value = result.data
                     Log.d("RoomViewModel", "Join requests loaded: ${result.data}")
                 }
                 is Result.Error -> {
                     // Handle error
+                }
+            }
+        }
+    }
+
+    fun isCurrentUserCreatorOfRoom(roomId: String, onResult: (Boolean) -> Unit) {
+        val userId = _currentUser.value?.userId
+        if (userId != null) {
+            viewModelScope.launch {
+                val result = withContext(Dispatchers.IO) {
+                    roomRepository.getRoomById(roomId)
+                }
+                when (result) {
+                    is Result.Success -> {
+                        val room = result.data
+                        onResult(room.creatorId == userId)
+                    }
+                    is Result.Error -> {
+                        Log.e("RoomViewModel", "Error fetching room details: ${result.exception.message}")
+                        onResult(false)
+                    }
+                }
+            }
+        } else {
+            Log.e("RoomViewModel", "Current user not loaded.")
+            onResult(false)
+        }
+    }
+
+    fun loadUserJoinLink() {
+        _currentUser.value?.let { user ->
+            viewModelScope.launch {
+                val result = withContext(Dispatchers.IO) {
+                    userRepository.getUserJoinLink(user.userId)
+                }
+                when (result) {
+                    is Result.Success -> {
+                        _userJoinLink.value = result.data
+                    }
+                    is Result.Error -> {
+                        Log.e("RoomViewModel", "Error fetching user join link: ${result.exception.message}")
+                    }
                 }
             }
         }

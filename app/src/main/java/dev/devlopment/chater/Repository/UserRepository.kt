@@ -81,4 +81,15 @@ class UserRepository(private val auth: FirebaseAuth, private val firestore: Fire
     } catch (e: Exception) {
         Result.Error(e)
     }
+
+    suspend fun getUserJoinLink(userId: String): Result<String> {
+        return try {
+            val userDoc = firestore.collection("users").document(userId).get().await()
+            val userJoinLink = userDoc.getString("userJoinLink") ?: ""
+            Result.Success(userJoinLink)
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
+    }
+
 }

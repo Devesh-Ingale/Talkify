@@ -3,7 +3,7 @@ package dev.devlopment.chater.AIChat
 import com.google.ai.client.generativeai.GenerativeModel
 
 object AiChatData {
-    val api_key = "AIzaSyCBNCGUq9q1CS4Y3bgoratlm2m0LDxl_7Y"
+    val api_key = "AIzaSyC6WdpL1lk11R-P6KxHiO_M1RKDrlOAneQ"
 
     suspend fun getResponse(prompt: String): AiChatbotdata? {
         val generativeModel = GenerativeModel(

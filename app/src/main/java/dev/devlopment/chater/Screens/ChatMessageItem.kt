@@ -1,7 +1,6 @@
 package dev.devlopment.chater.Screens
 
 
-import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -31,6 +30,7 @@ import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -51,9 +51,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import dev.devlopment.chater.Navigations.Screen
 import dev.devlopment.chater.R
-import dev.devlopment.chater.Repository.Result
 import dev.devlopment.chater.Repository.Room
+import dev.devlopment.chater.ViewModels.AuthViewModel
 import dev.devlopment.chater.ViewModels.RoomViewModel
 import dev.devlopment.chater.ui.theme.focusedTextFieldText
 import dev.devlopment.chater.ui.theme.textFieldContainer
@@ -64,11 +66,12 @@ import dev.devlopment.chater.ui.theme.unfocusedTextFieldText
 @Composable
 fun ChatRoomListScreen(
     roomViewModel: RoomViewModel = viewModel(),
+    authViewModel: AuthViewModel = viewModel(),
+    navController: NavHostController, // Add NavController parameter
     onJoinClicked: (Room) -> Unit,
     onAiClicked: () -> Unit
 ) {
     val rooms by roomViewModel.rooms.observeAsState(emptyList())
-    Log.d("ChatRoomListScreen", "Observed rooms: $rooms") // Add this line
     var showDialog by remember { mutableStateOf(false) }
     var name by remember { mutableStateOf("") }
     var searchText by remember { mutableStateOf("") }
@@ -83,40 +86,50 @@ fun ChatRoomListScreen(
                 showDialog = false
                 name = ""
             }
-            is Result.Error -> {
+            is dev.devlopment.chater.Repository.Result.Error -> {
                 // Handle the error, maybe show a Toast or a Snackbar
-                Log.e("ChatRoomListScreen", "Error creating room: ${result.exception.message}")
             }
-
-            is dev.devlopment.chater.Repository.Result.Error -> TODO()
-            is dev.devlopment.chater.Repository.Result.Success -> TODO()
         }
     }
 
-
     val filteredRooms = rooms.filter { it.name.contains(searchText, ignoreCase = true) }
-    Log.d("ChatRoomListScreen", "Filtered rooms: $filteredRooms") // Add this line
     val background: Color = if (isSystemInDarkTheme()) Color(0xFF1E293B) else Color(0xFFBFDBFE)
     val uiColor: Color = if (isSystemInDarkTheme()) Color.White else Color.Black
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            Text(
-                "Chat Rooms",
-                style = MaterialTheme.typography.headlineLarge,
-                modifier = Modifier
-                    .background(background, shape = RoundedCornerShape(5.dp))
-                    .fillMaxWidth()
-                    .padding(all = 15.dp),
-                color = uiColor
-            )
+            Row {
+                IconButton(
+                    onClick = {
+                        authViewModel.logout()
+                        navController.navigate(Screen.LoginScreen.route) // Navigate to login screen on logout
+                    },
+                    modifier = Modifier
+                        .background(background, shape = RoundedCornerShape(50.dp))
+                ) {
+                    Icon(painter = painterResource(id = R.drawable.logout), contentDescription = "Logout")
+                }
+                Text(
+                    "Chat Rooms",
+                    style = MaterialTheme.typography.headlineLarge,
+                    modifier = Modifier
+                        .background(background, shape = RoundedCornerShape(5.dp))
+                        .fillMaxWidth()
+                        .padding(all = 15.dp),
+                    color = uiColor
+                )
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
 
             TextField(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp)
-                    .border(BorderStroke(0.5.dp, color = uiColor), shape = RoundedCornerShape(20.dp)),
+                    .border(
+                        BorderStroke(0.5.dp, color = uiColor),
+                        shape = RoundedCornerShape(20.dp)
+                    ),
                 value = searchText,
                 onValueChange = { searchText = it },
                 label = {
@@ -172,7 +185,6 @@ fun ChatRoomListScreen(
                         Button(onClick = {
                             if (name.isNotBlank()) {
                                 roomViewModel.createRoom(name)
-                                // The dialog will be dismissed based on the observation of `createRoomResult`
                             }
                         }) {
                             Text("Add")
@@ -190,7 +202,9 @@ fun ChatRoomListScreen(
 
         FloatingActionButton(
             onClick = { joinRoomDialog = true },
-            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
         ) {
             Icon(imageVector = Icons.Default.Add, contentDescription = "Join Room")
         }
@@ -222,6 +236,7 @@ fun ChatRoomListScreen(
         )
     }
 }
+
 
 @Composable
 fun RoomItem(room: Room, onJoinClicked: (Room) -> Unit) {

@@ -12,7 +12,6 @@ import androidx.navigation.compose.composable
 import dev.devlopment.chater.Screens.AiChatScreen
 import dev.devlopment.chater.Screens.ChatRoomListScreen
 import dev.devlopment.chater.Screens.ChatScreen
-import dev.devlopment.chater.Screens.JoinRequestsScreen
 import dev.devlopment.chater.Screens.LoginScreen
 import dev.devlopment.chater.Screens.SignUpScreen
 import dev.devlopment.chater.ViewModels.AuthViewModel
@@ -27,16 +26,18 @@ fun NavigationGraph(
     roomViewModel: RoomViewModel
 ) {
     val loggedInUser = authViewModel.loggedIn.value
-
     LaunchedEffect(loggedInUser) {
         loggedInUser?.let {
             if (it) {
                 navController.navigate(Screen.ChatRoomsScreen.route)
             } else {
-                navController.navigate(Screen.LoginScreen.route)
+                navController.navigate(Screen.LoginScreen.route) {
+                    popUpTo(Screen.ChatRoomsScreen.route) { inclusive = true }
+                }
             }
         }
     }
+
 
     NavHost(
         navController = navController,
@@ -60,6 +61,8 @@ fun NavigationGraph(
         composable(Screen.ChatRoomsScreen.route) {
             ChatRoomListScreen(
                 roomViewModel = roomViewModel,
+                authViewModel = authViewModel,
+                navController = navController,
                 onJoinClicked = {
                     navController.navigate("${Screen.ChatScreen.route}/${it.id}")
                 },
@@ -70,14 +73,11 @@ fun NavigationGraph(
         }
         composable("${Screen.ChatScreen.route}/{roomId}") { backStackEntry ->
             val roomId = backStackEntry.arguments?.getString("roomId") ?: ""
-            ChatScreen(roomId = roomId, roomViewModel = roomViewModel, isCreator = true, messageViewModel = MessageViewModel())
+            ChatScreen(roomId = roomId, roomViewModel = roomViewModel, messageViewModel = MessageViewModel())
         }
         composable(Screen.AichatScreen.route) {
             AiChatScreen(paddingValues = PaddingValues(16.dp))
         }
-        composable("${Screen.JoinRequestsScreen.route}/{roomId}") { backStackEntry ->
-            val roomId = backStackEntry.arguments?.getString("roomId") ?: ""
-            JoinRequestsScreen(roomId = roomId, roomViewModel = roomViewModel)
-        }
+
     }
 }

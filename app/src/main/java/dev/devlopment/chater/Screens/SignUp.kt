@@ -44,8 +44,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.devlopment.chater.ViewModels.AuthViewModel
 import dev.devlopment.chater.R
+import dev.devlopment.chater.ViewModels.AuthViewModel
 import dev.devlopment.chater.ui.theme.Black
 import dev.devlopment.chater.ui.theme.BlueGray
 import dev.devlopment.chater.ui.theme.Roboto
@@ -179,7 +179,7 @@ fun SignUpScreen(
                     onValueChange = { firstName = it },
                     label = {
                         Text(
-                            text = "FirstName",
+                            text = "Roll No",
                             style = MaterialTheme.typography.labelMedium,
                             color = uiColor
                         )
@@ -199,7 +199,7 @@ fun SignUpScreen(
                     onValueChange = { lastName = it },
                     label = {
                         Text(
-                            text = "LastName",
+                            text = "Name",
                             style = MaterialTheme.typography.labelMedium,
                             color = uiColor
                         )
