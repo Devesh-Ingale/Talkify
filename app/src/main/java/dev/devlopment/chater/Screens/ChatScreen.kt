@@ -4,8 +4,11 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.util.Log
+import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,24 +16,32 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -39,158 +50,140 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.BottomCenter
+import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Yellow
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import dev.devlopment.chater.R
 import dev.devlopment.chater.Repository.Message
 import dev.devlopment.chater.ViewModels.MessageViewModel
 import dev.devlopment.chater.ViewModels.RoomViewModel
+import dev.devlopment.chater.ui.theme.InterRegular
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
+@OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ChatScreen(
     roomId: String,
+    roomName: String,
+    navController: NavHostController,
     messageViewModel: MessageViewModel = viewModel(),
     roomViewModel: RoomViewModel = viewModel()
 ) {
     val messages by messageViewModel.messages.observeAsState(emptyList())
     val currentUser by messageViewModel.currentUser.observeAsState()
     messageViewModel.setRoomId(roomId)
-    val text = remember { mutableStateOf("") }
-    val showDialog = remember { mutableStateOf(false) }
-    val showDialog2 = remember { mutableStateOf(false) }
+    var message by remember { mutableStateOf("") }
 
-    // State to hold whether the current user is the creator
+    var showBottomSheet by remember { mutableStateOf(false) }
     var isCreator by remember { mutableStateOf(false) }
 
-    // Check if the current user is the creator of the room
     LaunchedEffect(roomId) {
         roomViewModel.isCurrentUserCreatorOfRoom(roomId) { result ->
             isCreator = result
         }
     }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .background(Color.Black)
     ) {
-        // Button to display room ID for creator
-        if (isCreator) {
-            Button(
-                onClick = {
-                    showDialog.value = true
-                },
-                modifier = Modifier.padding(8.dp)
-            ) {
-                Text(text = "Show Room ID")
-            }
-        }
-
-        // Join requests section for creator
-        if (isCreator) {
-            Button(
-                onClick = { showDialog2.value = true },
-                modifier = Modifier.padding(8.dp)
-            ) {
-                Text(text = "Show Join Requests")
-            }
-        }
-
-        // Display the chat messages
-        LazyColumn(
-            modifier = Modifier.weight(1f)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
         ) {
-            items(messages) { message ->
-                ChatMessageItem(message = message.copy(isSentByCurrentUser = message.senderId == messageViewModel.currentUser.value?.email))
+            TopAppBar(
+                title = { Text(text = roomName, color = Color.White) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.navigateUp() }) {
+                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                    }
+                },
+                actions = {
+                    if (isCreator) {
+                        IconButton(onClick = { showBottomSheet = true }) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = "More Options",
+                                tint = Color.White
+                            )
+                        }
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(Color.Black)
+            )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 25.dp)
+                    .clip(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
+                    .background(Color.White)
+            ) {
+                LazyColumn(
+                    modifier = Modifier
+                        .padding(start = 15.dp, top = 25.dp, end = 15.dp, bottom = 50.dp)
+                ) {
+                    items(messages) { message ->
+                        ChatMessageItem(
+                            message = message.copy(isSentByCurrentUser = message.senderId == currentUser?.email)
+                        )
+                    }
+                }
             }
         }
 
         // Chat input field and send icon
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Add "+" button at the start of the Row
-            if (isCreator) {
-                IconButton(
-                    onClick = {
-                        // Auto-send "join the meeting" message with the link
-                        val joinLink = currentUser?.userJoinLink ?: ""
-                        if (joinLink.isNotEmpty()) {
-                            messageViewModel.sendMessage("join the meeting: $joinLink")
-                        }
+        if (isCreator) {
+            CustomTextField(
+                text = message,
+                onValueChange = { message = it },
+                onSendClick = {
+                    if (message.isNotEmpty()) {
+                        messageViewModel.sendMessage(message.trim())
+                        message = ""
+                        messageViewModel.loadMessages()
                     }
-                ) {
-                    Icon(imageVector = Icons.Default.Add, contentDescription = "Invite")
-                }
-            }
-
-            // Existing code for message input and send button
-            BasicTextField(
-                value = text.value,
-                onValueChange = { text.value = it },
-                textStyle = TextStyle.Default.copy(fontSize = 16.sp),
+                },
+                onJoinClick = {
+                    val joinLink = currentUser?.userJoinLink ?: ""
+                    if (isCreator && joinLink.isNotEmpty()) {
+                        messageViewModel.sendMessage("join the meeting: $joinLink")
+                    }
+                },
                 modifier = Modifier
-                    .weight(1f)
-                    .padding(8.dp)
+                    .align(BottomCenter) // Ensures the text field is at the bottom
+                    .padding(16.dp), // Adds padding from the bottom edge
+                isCreator = isCreator
             )
+        }
 
-            IconButton(
-                onClick = {
-                    if (text.value.isNotEmpty()) {
-                        messageViewModel.sendMessage(text.value.trim())
-                        text.value = ""
-                    }
-                    messageViewModel.loadMessages()
-                }
-            ) {
-                Icon(imageVector = Icons.Default.Send, contentDescription = "Send")
-            }
+        if (showBottomSheet) {
+            RoomBottomSheet(
+                roomId = roomId,
+                onDismiss = { showBottomSheet = false },
+                roomViewModel = roomViewModel,
+            )
         }
     }
-
-    // Room ID dialog
-    if (showDialog.value) {
-        AlertDialog(
-            onDismissRequest = { showDialog.value = false },
-            title = { Text(text = "Room ID") },
-            text = { Text(text = roomId) },
-            confirmButton = {
-                Button(
-                    onClick = { showDialog.value = false }
-                ) {
-                    Text(text = "OK")
-                }
-            }
-        )
-    }
-
-    if (showDialog2.value) {
-        JoinRequestsDialog(
-            roomId = roomId,
-            roomViewModel = roomViewModel,
-            onDismiss = { showDialog2.value = false }
-        )
-    }
 }
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -249,10 +242,168 @@ fun JoinRequestsDialog(
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun RoomBottomSheet(
+    roomId: String,
+    onDismiss: () -> Unit,
+    roomViewModel: RoomViewModel,
+) {
+    var showRoomIdDialog by remember { mutableStateOf(false) }
+    var showJoinRequestsDialog by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState()
+
+    // State for admin-only mode
+    var isAdminOnly by remember { mutableStateOf(false) }
+
+    // Room ID Dialog
+    if (showRoomIdDialog) {
+        AlertDialog(
+            onDismissRequest = { showRoomIdDialog = false },
+            title = { Text(text = "Room ID") },
+            text = { Text(text = roomId) },
+            confirmButton = {
+                TextButton(onClick = { showRoomIdDialog = false }) {
+                    Text(text = "OK")
+                }
+            }
+        )
+    }
+
+    // Join Requests Dialog using the provided JoinRequestsDialog composable
+    if (showJoinRequestsDialog) {
+        JoinRequestsDialog(
+            roomId = roomId,
+            roomViewModel = roomViewModel,
+            onDismiss = { showJoinRequestsDialog = false }
+        )
+    }
+
+    ModalBottomSheet(
+        sheetState = sheetState,
+        onDismissRequest = onDismiss
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+
+            TextButton(onClick = { showRoomIdDialog = true }) {
+                Text(text = "Show Room ID")
+            }
+            TextButton(onClick = { showJoinRequestsDialog = true }) {
+                Text(text = "Show Join Requests")
+            }
+
+            TextButton(onClick = onDismiss) {
+                Text(text = "Close")
+            }
+        }
+    }
+}
+
+
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CustomTextField(
+    text: String,
+    onValueChange: (String) -> Unit,
+    onSendClick: () -> Unit,
+    onJoinClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    isCreator: Boolean
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 20.dp),
+        elevation = CardDefaults.cardElevation(0.dp),
+        shape = RoundedCornerShape(50.dp),
+        border = BorderStroke(1.dp, Color.Gray)
+    ) {
+        TextField(
+            value = text,
+            onValueChange = { onValueChange(it) },
+            placeholder = {
+                Text(
+                    text = "Type Message....",
+                    style = TextStyle(
+                        fontSize = 14.sp,
+                        fontFamily = InterRegular,
+                        color = Color.Black
+                    ),
+                    textAlign = TextAlign.Center
+                )
+            },
+            colors = TextFieldDefaults.textFieldColors(
+                unfocusedTextColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                focusedIndicatorColor = Color.Transparent
+            ),
+            leadingIcon = {
+                if (isCreator) {
+                    CommonIconButton(imageVector = Icons.Default.Add, onJoinClick)
+                }
+            },
+            trailingIcon = {
+                CommonIconButtonDrawable(R.drawable.baseline_send_24, onSendClick)
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+fun CommonIconButton(
+    imageVector: ImageVector,onJoinClick: () -> Unit
+) {
+
+    Box(
+        modifier = Modifier
+            .size(33.dp)
+            .clip(CircleShape)
+            .background(Yellow)
+            .clickable { onJoinClick() }, contentAlignment = Center
+    ) {
+        Icon(
+            imageVector = imageVector, contentDescription = "",
+            tint = Color.Black,
+            modifier = Modifier.size(15.dp)
+        )
+    }
+
+}
+
+@Composable
+fun CommonIconButtonDrawable(
+    @DrawableRes icon: Int,
+    onSendClick: () -> Unit
+) {
+
+    Box(
+        modifier = Modifier
+            .size(33.dp)
+            .clip(CircleShape)
+            .background(Yellow)
+            .clickable { onSendClick() }, contentAlignment = Center
+    ) {
+        Icon(
+            painter = painterResource(id = icon), contentDescription = "",
+            tint = Color.Black,
+            modifier = Modifier.size(15.dp)
+        )
+    }
+
+}
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ChatMessageItem(message: Message) {
-    val context = LocalContext.current // Context should be retrieved inside a composable
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -262,116 +413,47 @@ fun ChatMessageItem(message: Message) {
     ) {
         Box(
             modifier = Modifier
+                .clip(RoundedCornerShape(16.dp))
                 .background(
-                    if (message.isSentByCurrentUser) colorResource(id = R.color.purple_700) else Color.Gray,
-                    shape = RoundedCornerShape(8.dp)
+                    if (message.isSentByCurrentUser) Color(0XFFFFE1CC)
+                    else Color(0XFFFFF1BF)
                 )
-                .padding(8.dp)
-        ) {
-            // If the message contains "join the meeting" with a link, make the link clickable
-            if (message.text.contains("join the meeting:")) {
-                val annotatedString = buildAnnotatedString {
-                    val parts = message.text.split("join the meeting: ")
-                    append(parts[0])
-                    withStyle(style = SpanStyle(color = Color.Red, textDecoration = TextDecoration.Underline)) {
-                        append(parts[1])
+                .padding(12.dp)
+                .clickable {
+                    if (message.text.startsWith("join the meeting: ")) {
+                        val url = message.text.removePrefix("join the meeting: ")
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                        context.startActivity(intent)
                     }
-                    addStringAnnotation(
-                        tag = "URL",
-                        annotation = parts[1],
-                        start = parts[0].length,
-                        end = message.text.length
-                    )
                 }
-
-                ClickableText(
-                    text = annotatedString,
-                    style = TextStyle(fontSize = 16.sp, color = Color.White),
-                    onClick = { offset ->
-                        annotatedString.getStringAnnotations(tag = "URL", start = offset, end = offset)
-                            .firstOrNull()?.let { annotation ->
-                                // Open the link in the browser
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(annotation.item))
-                                context.startActivity(intent)
-                            }
-                    }
-                )
-            } else {
-                // Regular text
-                Text(
-                    text = message.text,
-                    color = Color.White,
-                    style = TextStyle(fontSize = 16.sp)
-                )
-            }
+        ) {
+            Text(
+                text = message.text,
+                style = TextStyle(
+                    color = Color.Black,
+                    fontFamily = InterRegular,
+                    fontSize = 15.sp
+                ),
+                modifier = Modifier.padding(vertical = 8.dp, horizontal = 15.dp),
+                textAlign = TextAlign.End
+            )
         }
-        Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = message.senderFirstName,
-            style = TextStyle(
-                fontSize = 12.sp,
-                color = Color.Gray
-            )
+            style = TextStyle(fontSize = 12.sp, color = Color.Gray),
+            modifier = Modifier.padding(top = 4.dp)
         )
         Text(
             text = formatTimestamp(message.timestamp),
-            style = TextStyle(
-                fontSize = 12.sp,
-                color = Color.Gray
-            )
-        )
-    }
-}
-
-@Composable
-fun RoomListScreen(roomViewModel: RoomViewModel = viewModel(), currentUserEmail: String) {
-    var showDialog by remember { mutableStateOf(false) }
-    var roomId by remember { mutableStateOf("") }
-
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        // Existing code to display the list of rooms
-
-        FloatingActionButton(
-            onClick = { showDialog = true },
-            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp)
-        ) {
-            Icon(imageVector = Icons.Default.Add, contentDescription = "Join Room")
-        }
-    }
-
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = { Text(text = "Join Room") },
-            text = {
-                Column {
-                    Text(text = "Enter Room ID")
-                    TextField(value = roomId, onValueChange = { roomId = it })
-                }
-            },
-            confirmButton = {
-                Button(onClick = {
-                    roomViewModel.requestToJoinRoom(roomId)
-                    showDialog = false
-                }) {
-                    Text(text = "Send Request")
-                }
-            },
-            dismissButton = {
-                Button(onClick = { showDialog = false }) {
-                    Text(text = "Cancel")
-                }
-            }
+            style = TextStyle(fontSize = 12.sp, color = Color.Gray),
+            modifier = Modifier.padding(top = 2.dp)
         )
     }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 private fun formatTimestamp(timestamp: Long): String {
-    val messageDateTime =
-        LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault())
+    val messageDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault())
     val now = LocalDateTime.now()
     val formatter = if (messageDateTime.toLocalDate() == now.toLocalDate()) {
         DateTimeFormatter.ofPattern("HH:mm")
@@ -380,31 +462,3 @@ private fun formatTimestamp(timestamp: Long): String {
     }
     return messageDateTime.format(formatter)
 }
-
-
-
-@RequiresApi(Build.VERSION_CODES.O)
-private fun isSameDay(dateTime1: LocalDateTime, dateTime2: LocalDateTime): Boolean {
-    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-    return dateTime1.format(formatter) == dateTime2.format(formatter)
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-private fun formatTime(dateTime: LocalDateTime): String {
-    val formatter = DateTimeFormatter.ofPattern("HH:mm")
-    return formatter.format(dateTime)
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
-private fun formatDate(dateTime: LocalDateTime): String {
-    val formatter = DateTimeFormatter.ofPattern("MMM d, yyyy")
-    return formatter.format(dateTime)
-}
-
-@Preview(showBackground = true)
-@Composable
-fun ChatMessageItemPreview() {}
-
-@Preview(showBackground = true)
-@Composable
-fun ChatScreenPreview() {}

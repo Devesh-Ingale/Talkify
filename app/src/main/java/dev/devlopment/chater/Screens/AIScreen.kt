@@ -3,6 +3,7 @@ package dev.devlopment.chater.Screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -27,12 +28,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.devlopment.chater.AIChat.ChatUiEvent
 import dev.devlopment.chater.ViewModels.ChatViewModel
+import dev.devlopment.chater.ui.theme.InterRegular
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 
@@ -86,7 +90,7 @@ fun AiChatScreen(paddingValues: PaddingValues) {
                 },
                 placeholder = {
                     Text(text = "Type a prompt")
-                }
+                }, shape = RoundedCornerShape(25.dp)
             )
 
             Spacer(modifier = Modifier.width(8.dp))
@@ -104,27 +108,37 @@ fun AiChatScreen(paddingValues: PaddingValues) {
             )
 
         }
-
     }
 
 }
 
+
 @Composable
 fun UserChatItem(prompt: String) {
     Column(
-        modifier = Modifier.padding(start = 100.dp, bottom = 16.dp)
+        modifier = Modifier.padding(start = 100.dp, bottom = 16.dp).fillMaxWidth(), horizontalAlignment = Alignment.End,
     ) {
 
-        Text(
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.primary)
-                .padding(16.dp),
-            text = prompt,
-            fontSize = 17.sp,
-            color = MaterialTheme.colorScheme.onPrimary
-        )
+                .clip(RoundedCornerShape(16.dp))
+                .background(
+                     Color(0XFFFFE1CC)
+                )
+                .padding(12.dp)
+
+        ) {
+            Text(
+                text = prompt,
+                style = TextStyle(
+                    color = Color.Black,
+                    fontFamily = InterRegular,
+                    fontSize = 15.sp
+                ),
+                modifier = Modifier.padding(vertical = 8.dp, horizontal = 15.dp),
+                textAlign = TextAlign.End
+            )
+        }
 
     }
 }
@@ -134,16 +148,26 @@ fun ModelChatItem(response: String) {
     Column(
         modifier = Modifier.padding(end = 100.dp, bottom = 16.dp)
     ) {
-        Text(
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(Color.Companion.Green)
-                .padding(16.dp),
-            text = response,
-            fontSize = 17.sp,
-            color = MaterialTheme.colorScheme.onPrimary
-        )
+                .clip(RoundedCornerShape(16.dp))
+                .background(
+                    Color(0XFFFFF1BF)
+                )
+                .padding(12.dp)
+
+        ) {
+            Text(
+                text = response,
+                style = TextStyle(
+                    color = Color.Black,
+                    fontFamily = InterRegular,
+                    fontSize = 15.sp
+                ),
+                modifier = Modifier.padding(vertical = 8.dp, horizontal = 15.dp),
+                textAlign = TextAlign.End
+            )
+        }
 
     }
 }
