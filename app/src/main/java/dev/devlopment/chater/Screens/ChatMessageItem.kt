@@ -3,6 +3,7 @@ package dev.devlopment.chater.Screens
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,18 +13,19 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,11 +45,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -58,8 +64,49 @@ import dev.devlopment.chater.ViewModels.AuthViewModel
 import dev.devlopment.chater.ViewModels.RoomViewModel
 import dev.devlopment.chater.ui.theme.InterRegular
 import dev.devlopment.chater.ui.theme.InterSemibold
+import kotlin.math.roundToInt
 
-@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DraggableFloatingActionButton(
+    modifier: Modifier = Modifier,
+    icon: @Composable () -> Unit,
+    onClick: () -> Unit,
+    initialOffsetX: Float = 150f, // Starting X position
+    initialOffsetY: Float = 300f // Starting Y position
+) {
+    var offsetX by remember { mutableStateOf(initialOffsetX) }
+    var offsetY by remember { mutableStateOf(initialOffsetY) }
+
+    val density = LocalDensity.current
+    val screenWidthPx = with(density) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
+    val screenHeightPx = with(density) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
+    val buttonSizePx = with(density) { 56.dp.toPx() }
+
+    Box(
+        modifier = modifier
+            .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
+            .size(56.dp)
+            .clip(CircleShape)
+            .background(Color.Black)
+            .pointerInput(Unit) {
+                detectDragGestures { change, dragAmount ->
+                    change.consume()
+
+                    // Calculate new position while ensuring the button stays within screen boundaries
+                    val newX = (offsetX + dragAmount.x).coerceIn(0f, screenWidthPx - buttonSizePx)
+                    val newY = (offsetY + dragAmount.y).coerceIn(0f, screenHeightPx - buttonSizePx)
+
+                    offsetX = newX
+                    offsetY = newY
+                }
+            }
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        icon()
+    }
+}
+
 @Composable
 fun ChatRoomListScreen(
     roomViewModel: RoomViewModel = viewModel(),
@@ -90,11 +137,9 @@ fun ChatRoomListScreen(
 
     val filteredRooms = rooms.filter { it.name.contains(searchText, ignoreCase = true) }
 
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .background(Color.Black)) {
+    Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
         Column(modifier = Modifier.fillMaxSize()) {
-            Header(roomViewModel,authViewModel)
+            Header(roomViewModel, authViewModel)
 
             Spacer(modifier = Modifier.size(15.dp))
 
@@ -117,19 +162,9 @@ fun ChatRoomListScreen(
                     .clip(RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp))
                     .background(Color.White)
             ) {
-                RoundedCorner(modifier = Modifier
-                    .align(TopCenter)
-                    .padding(top = 15.dp))
+                RoundedCorner(modifier = Modifier.align(TopCenter).padding(top = 15.dp))
 
                 LazyColumn(modifier = Modifier.padding(bottom = 15.dp, top = 30.dp)) {
-                    item {
-                        // Add AI chat as the first item in the list
-                        UserEachRow(
-                            person = Person("ai_chat", "AI Chat", R.drawable.baseline_person_24)
-                        ) {
-                            onAiClicked()
-                        }
-                    }
                     items(filteredRooms, key = { it.id }) { room ->
                         UserEachRow(person = Person(room.id, room.name, R.drawable.baseline_person_24)) {
                             onJoinClicked(room)
@@ -162,6 +197,21 @@ fun ChatRoomListScreen(
         ) {
             Icon(Icons.Default.Add, contentDescription = "Join Room", tint = Color.White)
         }
+
+        DraggableFloatingActionButton(
+            icon = {
+                Icon(
+                    painter = painterResource(id = R.drawable.baseline_android_24),
+                    contentDescription = "AI Chat",
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+            },
+            onClick = onAiClicked,
+            initialOffsetX = 600f, // Start position
+            initialOffsetY = 2200f, // Start position
+            modifier = Modifier.align(Alignment.TopStart)
+        )
 
         if (joinRoomDialog) {
             AlertDialog(
@@ -198,9 +248,7 @@ fun ChatRoomListScreen(
                         value = name,
                         onValueChange = { name = it },
                         singleLine = true,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp)
+                        modifier = Modifier.fillMaxWidth().padding(8.dp)
                     )
                 },
                 confirmButton = {
@@ -221,6 +269,8 @@ fun ChatRoomListScreen(
         }
     }
 }
+
+
 
 @Composable
 fun Header(
