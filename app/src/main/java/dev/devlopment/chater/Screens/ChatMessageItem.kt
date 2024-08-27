@@ -105,7 +105,8 @@ fun ChatRoomListScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
-                colors = TextFieldDefaults.colors(Color.White)
+                colors = TextFieldDefaults.colors(Color.White),
+                shape = RoundedCornerShape(25.dp)
             )
 
             Spacer(modifier = Modifier.size(10.dp))
@@ -159,7 +160,7 @@ fun ChatRoomListScreen(
                 .padding(16.dp),
             containerColor = Color.Black
         ) {
-            Icon(Icons.Default.Add, contentDescription = "Join Room")
+            Icon(Icons.Default.Add, contentDescription = "Join Room", tint = Color.White)
         }
 
         if (joinRoomDialog) {

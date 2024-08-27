@@ -155,7 +155,7 @@ fun LoginScreen(
                 ) {
                     Icon(
                         modifier = Modifier.size(42.dp),
-                        painter = painterResource(id = R.drawable.logo),
+                        painter = painterResource(id = R.drawable.meetx),
                         contentDescription = stringResource(id = R.string.app_name)
                     )
                     Spacer(modifier = Modifier.width(15.dp))
