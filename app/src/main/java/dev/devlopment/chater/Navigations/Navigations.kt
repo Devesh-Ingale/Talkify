@@ -46,7 +46,8 @@ fun NavigationGraph(
         composable(Screen.SignupScreen.route) {
             SignUpScreen(
                 authViewModel = authViewModel,
-                onNavigateToLogin = { navController.navigate(Screen.LoginScreen.route) }
+                onNavigateToLogin = { navController.navigate(Screen.LoginScreen.route) },
+                onSignUpSuccess = {navController.navigate(Screen.ChatRoomsScreen.route)}
             )
         }
         composable(Screen.LoginScreen.route) {
@@ -63,18 +64,21 @@ fun NavigationGraph(
                 roomViewModel = roomViewModel,
                 authViewModel = authViewModel,
                 navController = navController,
-                onJoinClicked = {
-                    navController.navigate("${Screen.ChatScreen.route}/${it.id}")
+                onJoinClicked = { room ->
+                    navController.navigate("${Screen.ChatScreen.route}/${room.id}/${room.name}")
                 },
                 onAiClicked = {
                     navController.navigate(Screen.AichatScreen.route)
                 }
             )
         }
-        composable("${Screen.ChatScreen.route}/{roomId}") { backStackEntry ->
+
+        composable("${Screen.ChatScreen.route}/{roomId}/{roomName}") { backStackEntry ->
             val roomId = backStackEntry.arguments?.getString("roomId") ?: ""
-            ChatScreen(roomId = roomId, roomViewModel = roomViewModel, messageViewModel = MessageViewModel())
+            val roomName = backStackEntry.arguments?.getString("roomName") ?: ""
+            ChatScreen(roomId = roomId, roomName = roomName, roomViewModel = roomViewModel, navController = navController, messageViewModel = MessageViewModel())
         }
+
         composable(Screen.AichatScreen.route) {
             AiChatScreen(paddingValues = PaddingValues(16.dp))
         }

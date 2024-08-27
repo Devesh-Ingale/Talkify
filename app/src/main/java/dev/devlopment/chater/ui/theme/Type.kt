@@ -9,6 +9,11 @@ import androidx.compose.ui.unit.sp
 import dev.devlopment.chater.R
 
 // Set of Material typography styles to start with
+val InterRegular = FontFamily(Font(R.font.inter))
+val InterBold = FontFamily(Font(R.font.inter_bold))
+val InterSemibold = FontFamily(Font(R.font.inter_semibold))
+val InterMedium = FontFamily(Font(R.font.inter_medium))
+
 val Inter = FontFamily(
     listOf(
         Font(resId = R.font.inter_medium, weight = FontWeight.Medium)
