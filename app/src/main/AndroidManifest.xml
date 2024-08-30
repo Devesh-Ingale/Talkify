@@ -2,8 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32"
+        tools:ignore="ScopedStorage" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
 
     <application
         android:name="dev.devlopment.chater.MyApp"
@@ -15,7 +18,7 @@
         android:roundIcon="@drawable/meetx"
         android:supportsRtl="true"
         android:theme="@style/Theme.Chater"
-        tools:targetApi="31"
+        tools:targetApi="tiramisu"
         android:enableOnBackInvokedCallback="true">
         <activity
             android:name=".MainActivity"

@@ -36,6 +36,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -74,8 +75,8 @@ fun DraggableFloatingActionButton(
     initialOffsetX: Float = 150f, // Starting X position
     initialOffsetY: Float = 300f // Starting Y position
 ) {
-    var offsetX by remember { mutableStateOf(initialOffsetX) }
-    var offsetY by remember { mutableStateOf(initialOffsetY) }
+    var offsetX by remember { mutableFloatStateOf(initialOffsetX) }
+    var offsetY by remember { mutableFloatStateOf(initialOffsetY) }
 
     val density = LocalDensity.current
     val screenWidthPx = with(density) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
