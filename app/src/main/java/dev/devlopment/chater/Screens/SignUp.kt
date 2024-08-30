@@ -209,7 +209,7 @@ fun SignUpScreen(
                     onValueChange = { firstName = it },
                     label = {
                         Text(
-                            text = "Roll No",
+                            text = "FirstName",
                             style = MaterialTheme.typography.labelMedium,
                             color = uiColor
                         )

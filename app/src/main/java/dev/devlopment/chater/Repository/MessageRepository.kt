@@ -14,10 +14,10 @@ class MessageRepository(private val firestore: FirebaseFirestore) {
             val roomDoc = firestore.collection("rooms").document(roomId).get().await()
             val room = roomDoc.toObject(Room::class.java) ?: return Result.Error(Exception("Room not found"))
 
-            // Check if the sender is the creator
-            if (message.senderId != room.creatorId) {
-                return Result.Error(Exception("Only the room creator can send messages."))
-            }
+//            // Check if the sender is the creator
+//            if (message.senderId != room.creatorId) {
+//                return Result.Error(Exception("Only the room creator can send messages."))
+//            }
 
             firestore.collection("rooms").document(roomId)
                 .collection("messages").add(message).await()

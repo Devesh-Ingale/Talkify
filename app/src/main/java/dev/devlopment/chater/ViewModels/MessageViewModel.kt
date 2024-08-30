@@ -56,7 +56,7 @@ class MessageViewModel : ViewModel() {
                 }
                 if (roomResult is Result.Success) {
                     val room = roomResult.data
-                    if (user.email == room.creatorId) {
+                    //if (user.email == room.creatorId) {
                         val message = Message(
                             senderFirstName = user.firstName,
                             senderId = user.email,
@@ -65,9 +65,9 @@ class MessageViewModel : ViewModel() {
                         _sendMessageResult.value = withContext(Dispatchers.IO) {
                             messageRepository.sendMessage(roomId, message)
                         }
-                    } else {
-                        _sendMessageResult.value = Result.Error(Exception("Only the room creator can send messages."))
-                    }
+//                    } else {
+//                        _sendMessageResult.value = Result.Error(Exception("Only the room creator can send messages."))
+//                    }
                 } else {
                     _sendMessageResult.value = Result.Error(Exception("Room not found."))
                 }

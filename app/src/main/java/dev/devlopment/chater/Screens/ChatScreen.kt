@@ -24,7 +24,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
@@ -150,7 +149,6 @@ fun ChatScreen(
         }
 
         // Chat input field and send icon
-        if (isCreator) {
             CustomTextField(
                 text = message,
                 onValueChange = { message = it },
@@ -172,7 +170,6 @@ fun ChatScreen(
                     .padding(16.dp), // Adds padding from the bottom edge
                 isCreator = isCreator
             )
-        }
 
         if (showBottomSheet) {
             RoomBottomSheet(
@@ -344,11 +341,11 @@ fun CustomTextField(
                 unfocusedIndicatorColor = Color.Transparent,
                 focusedIndicatorColor = Color.Transparent
             ),
-            leadingIcon = {
-                if (isCreator) {
-                    CommonIconButton(imageVector = Icons.Default.Add, onJoinClick)
-                }
-            },
+//            leadingIcon = {
+//                if (isCreator) {
+//                    CommonIconButton(imageVector = Icons.Default.Add, onJoinClick)
+//                }
+//            },
             trailingIcon = {
                 CommonIconButtonDrawable(R.drawable.baseline_send_24, onSendClick)
             },
@@ -404,6 +401,7 @@ fun CommonIconButtonDrawable(
 @Composable
 fun ChatMessageItem(message: Message) {
     val context = LocalContext.current
+    val isLink = message.text.startsWith("join the meeting: ")
 
     Column(
         modifier = Modifier
@@ -420,7 +418,7 @@ fun ChatMessageItem(message: Message) {
                 )
                 .padding(12.dp)
                 .clickable {
-                    if (message.text.startsWith("join the meeting: ")) {
+                    if (isLink) {
                         val url = message.text.removePrefix("join the meeting: ")
                         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                         context.startActivity(intent)
@@ -430,7 +428,7 @@ fun ChatMessageItem(message: Message) {
             Text(
                 text = message.text,
                 style = TextStyle(
-                    color = Color.Black,
+                    color = if (isLink) Color.Blue else Color.Black, // Set text color to blue if it's a link
                     fontFamily = InterRegular,
                     fontSize = 15.sp
                 ),
@@ -450,6 +448,7 @@ fun ChatMessageItem(message: Message) {
         )
     }
 }
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 private fun formatTimestamp(timestamp: Long): String {

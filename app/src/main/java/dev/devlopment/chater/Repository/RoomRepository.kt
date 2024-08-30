@@ -13,13 +13,8 @@ class RoomRepository(private val firestore: FirebaseFirestore) {
             Log.d("RoomRepository", "Fetching user document...")
             val userDoc = firestore.collection("users").document(userId).get().await()
             Log.d("RoomRepository", "User document fetched.")
-            val createdRoom = userDoc.getString("createdRoom")
 
-            if (createdRoom != null) {
-                Log.e("RoomRepository", "User already created a room.")
-                return Result.Error(Exception("You can only create one room."))
-            }
-
+            // Generate a unique room ID
             val roomId = generateUniqueRoomId()
             Log.d("RoomRepository", "Generated room ID: $roomId")
 
@@ -28,12 +23,13 @@ class RoomRepository(private val firestore: FirebaseFirestore) {
             firestore.collection("rooms").document(roomId).set(room).await()
             Log.d("RoomRepository", "Room created in Firestore.")
 
-            Log.d("RoomRepository", "Updating user document with createdRoom and joinedRooms...")
+            // Update user's createdRooms and joinedRooms fields
+            val createdRooms = userDoc.get("createdRooms") as? List<String> ?: emptyList()
+            val joinedRooms = userDoc.get("joinedRooms") as? List<String> ?: emptyList()
+
             firestore.collection("users").document(userId).update(
-                mapOf(
-                    "createdRoom" to roomId,
-                    "joinedRooms" to listOf(roomId)
-                )
+                "createdRooms", createdRooms + roomId,
+                "joinedRooms", joinedRooms + roomId
             ).await()
             Log.d("RoomRepository", "User document updated.")
 

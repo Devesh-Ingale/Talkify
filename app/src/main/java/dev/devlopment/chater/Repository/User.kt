@@ -6,10 +6,11 @@ data class User(
     val firstName: String = "",
     val lastName: String = "",
     val email: String = "",
-    val createdRoom: String? = null,
+    val createdRooms: List<String> = listOf(), // Updated field
     val joinedRooms: List<String> = listOf(),
     val userJoinLink: String = ""
 )
+
 
 
 

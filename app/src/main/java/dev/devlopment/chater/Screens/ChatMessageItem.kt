@@ -209,7 +209,7 @@ fun ChatRoomListScreen(
             },
             onClick = onAiClicked,
             initialOffsetX = 600f, // Start position
-            initialOffsetY = 2200f, // Start position
+            initialOffsetY = 2000f, // Start position
             modifier = Modifier.align(Alignment.TopStart)
         )
 
